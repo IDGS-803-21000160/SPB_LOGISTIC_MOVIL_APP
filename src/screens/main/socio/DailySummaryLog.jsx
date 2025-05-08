@@ -395,7 +395,10 @@ const DailySummaryLog = () => {
                   onPress={() =>
                     router.push({
                       pathname: "/operador/homeOp/startRouteOp",
-                      params: { data: JSON.stringify(filteredData) },
+                      params: {
+                        data: JSON.stringify(filteredData),
+                        crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
+                      },
                     })
                   }
                 >

@@ -26,14 +26,16 @@ const InicioRutaForm = () => {
   const [idRutaOperador, setIdRutaOperador] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const { data } = useLocalSearchParams();
+  const { data, crData } = useLocalSearchParams();
   const dataRoute = JSON.parse(data);
+  const datosCR = JSON.parse(crData);
 
   //Variables datos de la ruta
   const [numRuta, setNumRuta] = useState("");
 
   useEffect(() => {
     console.log("Data de la ruta:", dataRoute[0][0]);
+    console.log("Data CR:", datosCR);
 
     AsyncStorage.getItem("id_operador").then((id) => {
       setIdRutaOperador(id);
