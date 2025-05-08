@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Image,
   SafeAreaView,
@@ -210,6 +211,17 @@ const DailySummaryLog = () => {
       console.error("Error en getAuthData:", error);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        if (userData) {
+          await getAuthData();
+        }
+      };
+      fetchData();
+    }, [userData])
+  );
 
   useEffect(() => {
     if (userData) {

@@ -3,6 +3,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
+
 import {
   Alert,
   Dimensions,
@@ -15,6 +16,8 @@ import {
   View,
 } from "react-native";
 import Spinner from "../../../components/common/Spinner";
+import { insertInicioRuta } from "../../../services/operadorServices/iniciorutaService";
+import { getFormattedDateMexico } from "../../../utils/dateFormatting";
 import { uploadFileAsync } from "../../../utils/firebaseStorage";
 
 const { width } = Dimensions.get("window");
@@ -23,7 +26,7 @@ const InicioRutaForm = () => {
   const [kilometrajeInicial, setKilometrajeInicial] = useState("");
   const [imagenOdometro, setImagenOdometro] = useState(null);
   const [manifiestoPdf, setManifiestoPdf] = useState(null);
-  const [idRutaOperador, setIdRutaOperador] = useState(1);
+  const [idRutaOperador, setIdRutaOperador] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const { data, crData } = useLocalSearchParams();
@@ -68,6 +71,21 @@ const InicioRutaForm = () => {
       setManifiestoPdf(uri);
     }
   };
+
+  const insertarInicioRuta = async (payload) => {
+    try {
+      const response = await insertInicioRuta(payload);
+      if (response) {
+        Alert.alert("Éxito", "Inicio de ruta registrado correctamente");
+      } else {
+        Alert.alert("Error", "No se pudo registrar el inicio de ruta");
+      }
+    } catch (error) {
+      console.error("Error al insertar inicio de ruta:", error);
+      Alert.alert("Error", "Ocurrió un error al registrar el inicio de ruta");
+    }
+  };
+
   const handleSubmit = async () => {
     if (!kilometrajeInicial)
       return Alert.alert("Atención", "Kilometraje obligatorio");
@@ -77,18 +95,22 @@ const InicioRutaForm = () => {
 
     setLoading(true);
     try {
-      // Aquí podrías subir la imagen y el PDF a tu storage/API...
-      // subir imagen
+      if (!dataRoute[0][0].id_ruta_operador)
+        return Alert.alert("Atención", "No se encontró la ruta");
+
       const imgUrl = await uploadFileAsync(
         imagenOdometro,
-        `inicioRuta/${idRutaOperador}/odometro_${Date.now()}.jpg`,
+        `inicioRuta/${
+          dataRoute[0][0].id_ruta_operador
+        }/odometro_${Date.now()}.jpg`,
         "image/jpeg"
       );
 
-      // Subir PDF de manifiesto
       const pdfUrl = await uploadFileAsync(
         manifiestoPdf,
-        `inicioRuta/${idRutaOperador}/manifiesto_${Date.now()}.pdf`,
+        `inicioRuta/${
+          dataRoute[0][0].id_ruta_operador
+        }/manifiesto_${Date.now()}.pdf`,
         "application/pdf"
       );
 
@@ -96,16 +118,17 @@ const InicioRutaForm = () => {
       console.log("URL de PDF:", pdfUrl);
 
       const payload = {
-        id_ruta_operador: parseInt(idRutaOperador, 10),
+        id_ruta_operador: dataRoute[0][0].id_ruta_operador,
+        doc_manifiesto: pdfUrl,
         kilometraje_inicial: kilometrajeInicial,
-        foto_odometro_url: imgUrl, // reemplaza con la URL real tras subir
-        manifiesto_pdf_url: pdfUrl, // idem
+        imagen_kilometraje: imgUrl, // reemplaza con la URL real tras subir
+        fecha_inicio: getFormattedDateMexico(),
       };
+
+      const postResponse = await insertarInicioRuta(payload);
 
       console.log("Payload a enviar:", payload);
       setLoading(false);
-      Alert.alert("Éxito", "Inicio de ruta registrado");
-      // Limpiar estado si hace falta...
     } catch (error) {
       console.error("Error al enviar:", error);
       setLoading(false);
