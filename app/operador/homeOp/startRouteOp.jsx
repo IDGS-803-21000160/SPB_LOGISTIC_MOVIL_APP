@@ -1,11 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import StartRouteScreen from "../../../src/screens/main/socio/StartRouteScreen";
+import { StyleSheet, View } from "react-native";
+import InicioRutaForm from "../../../src/screens/main/socio/StartRouteScreen";
 
 const StartRouteOp = () => {
   return (
     <View style={styles.container}>
-      <StartRouteScreen></StartRouteScreen>
+      <InicioRutaForm></InicioRutaForm>
     </View>
   );
 };

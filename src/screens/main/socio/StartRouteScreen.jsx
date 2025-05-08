@@ -1,180 +1,263 @@
-import { insertInicioRuta } from "../../../services/operadorServices/inicioruta.js";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
-  Button,
-  StyleSheet,
-  Alert,
-  Image,
   TouchableOpacity,
-  Dimensions,
-  ScrollView,
+  View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
+import Spinner from "../../../components/common/Spinner";
+import { uploadFileAsync } from "../../../utils/firebaseStorage";
 
 const { width } = Dimensions.get("window");
 
-const StartRouteForm = () => {
-  const [capturaSimplieroute, setCapturaSimplieroute] = useState(null);
+const InicioRutaForm = () => {
   const [kilometrajeInicial, setKilometrajeInicial] = useState("");
-  const [imagenKilometraje, setImagenKilometraje] = useState(null);
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [idRutaOperador, setIdRutaOperador] = useState("");
+  const [imagenOdometro, setImagenOdometro] = useState(null);
+  const [manifiestoPdf, setManifiestoPdf] = useState(null);
+  const [idRutaOperador, setIdRutaOperador] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const { data } = useLocalSearchParams();
+  const dataRoute = JSON.parse(data);
+
+  //Variables datos de la ruta
+  const [numRuta, setNumRuta] = useState("");
 
   useEffect(() => {
-    const obtenerIdOperador = async () => {
-      const id = await AsyncStorage.getItem("id_operador");
+    console.log("Data de la ruta:", dataRoute[0][0]);
+
+    AsyncStorage.getItem("id_operador").then((id) => {
       setIdRutaOperador(id);
-    };
-    obtenerIdOperador();
+    });
   }, []);
 
-  const seleccionarImagen = async (setImagen) => {
-    const result = await ImagePicker.launchImageLibraryAsync({
+  useEffect(() => {
+    setNumRuta(dataRoute[0][0].numero_ruta);
+  }, []);
+
+  const seleccionarImagen = async () => {
+    const { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
+      allowsEditing: false,
+      quality: 0.8,
     });
-    if (!result.canceled) {
-      setImagen(result.assets[0].uri);
-    }
+    if (!canceled) setImagenOdometro(assets[0].uri);
   };
 
+  const seleccionarPdf = async () => {
+    const res = await DocumentPicker.getDocumentAsync({
+      type: "application/pdf",
+      copyToCacheDirectory: true,
+    });
+    if (res.canceled) {
+      setManifiestoPdf(null);
+    } else {
+      // res.assets[0].uri en SDKs recientes
+      const uri = res.assets?.[0]?.uri ?? res.uri;
+      setManifiestoPdf(uri);
+    }
+  };
   const handleSubmit = async () => {
-    const formData = new FormData();
-    formData.append("id_ruta_operador", parseInt(idRutaOperador));
-    formData.append("kilometraje_inicial", kilometrajeInicial);
-    formData.append("fecha_inicio", fechaInicio);
+    if (!kilometrajeInicial)
+      return Alert.alert("Atención", "Kilometraje obligatorio");
+    if (!imagenOdometro)
+      return Alert.alert("Atención", "Selecciona foto odómetro");
+    if (!manifiestoPdf) return Alert.alert("Atención", "Selecciona PDF");
 
-    formData.append("captura_simplieroute", {
-      uri: capturaSimplieroute,
-      type: "image/jpeg",
-      name: `${idRutaOperador}_simple_${Date.now()}.jpg`,
-    });
-
-    formData.append("imagen_kilometraje", {
-      uri: imagenKilometraje,
-      type: "image/jpeg",
-      name: `${idRutaOperador}_km_${Date.now()}.jpg`,
-    });
-
+    setLoading(true);
     try {
-      const response = await insertInicioRuta(formData);
-      Alert.alert("Éxito", response.message);
+      // Aquí podrías subir la imagen y el PDF a tu storage/API...
+      // subir imagen
+      const imgUrl = await uploadFileAsync(
+        imagenOdometro,
+        `inicioRuta/${idRutaOperador}/odometro_${Date.now()}.jpg`,
+        "image/jpeg"
+      );
+
+      // Subir PDF de manifiesto
+      const pdfUrl = await uploadFileAsync(
+        manifiestoPdf,
+        `inicioRuta/${idRutaOperador}/manifiesto_${Date.now()}.pdf`,
+        "application/pdf"
+      );
+
+      console.log("URL de imagen:", imgUrl);
+      console.log("URL de PDF:", pdfUrl);
+
+      const payload = {
+        id_ruta_operador: parseInt(idRutaOperador, 10),
+        kilometraje_inicial: kilometrajeInicial,
+        foto_odometro_url: imgUrl, // reemplaza con la URL real tras subir
+        manifiesto_pdf_url: pdfUrl, // idem
+      };
+
+      console.log("Payload a enviar:", payload);
+      setLoading(false);
+      Alert.alert("Éxito", "Inicio de ruta registrado");
+      // Limpiar estado si hace falta...
     } catch (error) {
+      console.error("Error al enviar:", error);
+      setLoading(false);
       Alert.alert("Error", "No se pudo registrar el inicio de ruta");
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.formContainer}>
-        <Text style={styles.label}>Kilometraje Inicial:</Text>
-        <TextInput
-          style={styles.input}
-          value={kilometrajeInicial}
-          onChangeText={setKilometrajeInicial}
-          keyboardType="numeric"
-        />
+    <>
+      {loading ? (
+        <Spinner />
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Encabezado */}
+          <View className="mb-9">
+            <Text className="font-bold text-2xl text-center">
+              Form. Inicio de ruta
+            </Text>
+            <Text className="text-center">{numRuta}</Text>
+            <View className="mt-4">
+              <Text className=" text-sm text-gray-500">
+                Registra el arranque de tu ruta con los siguientes datos
+              </Text>
+            </View>
+          </View>
 
-        <Text style={styles.label}>Fecha de Inicio:</Text>
-        <TextInput
-          style={styles.input}
-          value={fechaInicio}
-          onChangeText={setFechaInicio}
-          placeholder="YYYY-MM-DDTHH:mm:ss"
-        />
+          <View style={styles.formContainer}>
+            {/* Kilometraje inicial */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Kilometraje Inicial</Text>
+              <TextInput
+                style={styles.input}
+                value={kilometrajeInicial}
+                onChangeText={setKilometrajeInicial}
+                keyboardType="numeric"
+                placeholder="Ej. 12345"
+              />
+            </View>
 
-        <Text style={styles.label}>Captura Simplieroute:</Text>
-        <TouchableOpacity
-          onPress={() => seleccionarImagen(setCapturaSimplieroute)}
-        >
-          <Text style={styles.uploadButton}>Seleccionar Imagen</Text>
-        </TouchableOpacity>
-        {capturaSimplieroute && (
-          <Image source={{ uri: capturaSimplieroute }} style={styles.preview} />
-        )}
+            {/* Imagen del odómetro */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Imagen Odómetro</Text>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={seleccionarImagen}
+              >
+                <Text style={styles.uploadText}>Seleccionar Imagen</Text>
+              </TouchableOpacity>
+              {imagenOdometro && (
+                <Image
+                  source={{ uri: imagenOdometro }}
+                  style={styles.preview}
+                />
+              )}
+            </View>
 
-        <Text style={styles.label}>Imagen Kilometraje:</Text>
-        <TouchableOpacity
-          onPress={() => seleccionarImagen(setImagenKilometraje)}
-        >
-          <Text style={styles.uploadButton}>Seleccionar Imagen</Text>
-        </TouchableOpacity>
-        {imagenKilometraje && (
-          <Image source={{ uri: imagenKilometraje }} style={styles.preview} />
-        )}
+            {/* PDF de manifiesto */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Manifiesto (PDF)</Text>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={() => {
+                  Alert.alert("DEBUG", "Tocaste PDF");
+                  seleccionarPdf();
+                }}
+              >
+                <Text style={styles.uploadText}>Seleccionar PDF</Text>
+              </TouchableOpacity>
+              {manifiestoPdf && (
+                <Text style={{ marginTop: 8, color: "#555" }}>
+                  {manifiestoPdf.split("/").pop()}
+                </Text>
+              )}
+            </View>
 
-        <TouchableOpacity
-          className="mt-8"
-          style={styles.submitButton}
-          onPress={handleSubmit}
-        >
-          <Text style={styles.submitText}>Enviar Inicio de Ruta</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            {/* Botón enviar */}
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleSubmit}
+            >
+              <Text style={styles.submitText}>Enviar</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      )}
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: "#fdfdfd",
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 400,
+    backgroundColor: "white",
+    padding: 16,
+    paddingBottom: 200,
+  },
+  formContainer: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    elevation: 2,
+  },
+  field: {
+    marginBottom: 18,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#444",
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
     marginBottom: 6,
-    marginTop: 18,
   },
   input: {
-    height: 44,
-    borderColor: "#ccc",
+    height: 46,
     borderWidth: 1,
+    borderColor: "#E0E0E0",
     borderRadius: 8,
     paddingHorizontal: 12,
-    backgroundColor: "#f9f9f9",
-    fontSize: 15,
+    backgroundColor: "#FAFAFA",
+    fontSize: 14,
     color: "#222",
   },
   uploadButton: {
-    color: "#007AFF",
-    fontWeight: "600",
-    marginTop: 6,
-    marginBottom: 12,
-    fontSize: 15,
+    height: 46,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FAFAFA",
+  },
+  uploadText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#AC3958",
   },
   preview: {
     width: "100%",
-    height: 180,
-    marginTop: 10,
-    marginBottom: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    height: width * 0.45,
+    borderRadius: 8,
+    marginTop: 12,
     resizeMode: "cover",
   },
   submitButton: {
-    backgroundColor: "#C64560",
-    paddingVertical: 16,
-    borderRadius: 10,
+    backgroundColor: "#AC3958",
+    borderRadius: 8,
+    paddingVertical: 14,
     alignItems: "center",
-    marginTop: 30,
+    marginTop: 10,
   },
   submitText: {
-    color: "#fff",
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "600",
-    fontSize: 17,
   },
 });
 
-export default StartRouteForm;
+export default InicioRutaForm;

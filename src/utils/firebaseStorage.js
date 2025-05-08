@@ -1,18 +1,26 @@
-// src/utils/firebaseStorage.js
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from "../config/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../config/firebase"; // Asegúrate que esta ruta es correcta
 
-export const uploadImageAsync = async (uri, storagePath) => {
-  // 1) convertir URI a blob
-  const resp = await fetch(uri);
-  const blob = await resp.blob();
+export const uploadFileAsync = async (uri, storagePath, mimeType) => {
+  try {
+    // Convertir el URI del archivo a un Blob
+    const response = await fetch(uri);
+    const blob = await response.blob();
 
-  // 2) referencia en Storage
-  const storageRef = ref(storage, storagePath);
+    const storageRef = ref(storage, storagePath);
 
-  // 3) subir y esperar progreso
-  await uploadBytesResumable(storageRef, blob);
+    // Subir el Blob
+    await uploadBytes(storageRef, blob, { contentType: mimeType });
 
-  // 4) obtener URL pública
-  return await getDownloadURL(storageRef);
+    // Obtener la URL de descarga
+    return await getDownloadURL(storageRef);
+  } catch (error) {
+    console.error("Error al subir archivo:", error);
+    // Es útil loguear el error específico de Firebase si está disponible
+    if (error.code) {
+      console.error("Firebase Storage Error Code:", error.code);
+      console.error("Firebase Storage Error Message:", error.message);
+    }
+    throw error;
+  }
 };

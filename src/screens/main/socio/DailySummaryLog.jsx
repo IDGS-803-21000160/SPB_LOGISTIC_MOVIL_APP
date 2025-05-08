@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
-import { SafeAreaView, ScrollView, TouchableOpacity } from "react-native";
+import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useAuth } from "../../../../src/context/AuthContext";
 
-import { getDailySummary } from "../../../services/encargadoCrServices/sumaryService.js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import {
-  getRouteOperador,
   getInfoOperador,
   getInfoOperadorandCR,
+  getRouteOperador,
 } from "../../../services/operadorServices/dataConsultsServices.js";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting.js";
-import { useRouter } from "expo-router";
 
 const DailySummaryLog = () => {
   const router = useRouter();
@@ -381,17 +386,27 @@ const DailySummaryLog = () => {
               )}
             </View>
             {/*Boton de iniicar rutas*/}
-            {filteredData[0]?.length >= 1 && dataRoute[0]?.estatus_ruta == 1 ? (
+            {filteredData[0]?.length >= 1 &&
+            dataRoute[0]?.estatus_ruta === 1 ? (
               <View>
                 <TouchableOpacity
                   className="flex flex-row items-center justify-center w-1/2  rounded-lg mx-4 p-3 mt-8"
                   style={{ backgroundColor: "#AC3958" }}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/operador/homeOp/startRouteOp",
+                      params: { data: JSON.stringify(filteredData) },
+                    })
+                  }
                 >
                   {StartRouteIconNormal()}
                   <Text className="font-normal text-xl text-center text-white ">
                     Iniciar Ruta
                   </Text>
                 </TouchableOpacity>
+              </View>
+            ) : (
+              <View>
                 <TouchableOpacity
                   className="flex flex-row items-center justify-center w-1/2  rounded-lg mx-4 p-3 mt-8"
                   style={{ backgroundColor: "#AC3958" }}
@@ -403,8 +418,6 @@ const DailySummaryLog = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
-            ) : (
-              <View></View>
             )}
           </ScrollView>
         </SafeAreaView>
