@@ -290,7 +290,8 @@ const DailySummaryLog = () => {
                 </View>
               </View>
               {filteredData[0]?.length >= 1 &&
-              dataRoute[0]?.estatus_ruta == 1 ? (
+              (dataRoute[0]?.estatus_ruta == 1 ||
+                dataRoute[0]?.estatus_ruta == 2) ? (
                 <View className="mx-4 mb-4">
                   <Text className="mt-10 font-medium text-white text-lg">
                     Asignación realizada porel CR
@@ -308,7 +309,8 @@ const DailySummaryLog = () => {
             </View>
             <View style={[styles.card, styles.cardOverlay]}>
               {filteredData[0]?.length &&
-              dataRoute[0]?.estatus_ruta == 1 >= 1 ? (
+              (dataRoute[0]?.estatus_ruta == 1 ||
+                dataRoute[0]?.estatus_ruta == 2) >= 1 ? (
                 <>
                   <Text className="font-extrabold text-gray-500 text-2xl">
                     CR {dataOperadorwhitCR?.crData[0]?.nombre_corto}
@@ -398,41 +400,58 @@ const DailySummaryLog = () => {
               )}
             </View>
             {/*Boton de iniicar rutas*/}
-            {filteredData[0]?.length >= 1 &&
-            dataRoute[0]?.estatus_ruta === 1 ? (
-              <View>
-                <TouchableOpacity
-                  className="flex flex-row items-center justify-center w-1/2  rounded-lg mx-4 p-3 mt-8"
-                  style={{ backgroundColor: "#AC3958" }}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/operador/homeOp/startRouteOp",
-                      params: {
-                        data: JSON.stringify(filteredData),
-                        crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
-                      },
-                    })
-                  }
-                >
-                  {StartRouteIconNormal()}
-                  <Text className="font-normal text-xl text-center text-white ">
-                    Iniciar Ruta
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View>
-                <TouchableOpacity
-                  className="flex flex-row items-center justify-center w-1/2  rounded-lg mx-4 p-3 mt-8"
-                  style={{ backgroundColor: "#AC3958" }}
-                  onPress={() => router.push("/operador/homeOp/findRoteOp")}
-                >
-                  {StartRouteIconNormal()}
-                  <Text className="font-normal text-xl text-center text-white ">
-                    Finalizar Ruta
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            {filteredData[0]?.length >= 1 && (
+              <>
+                {dataRoute[0]?.estatus_ruta === 1 && (
+                  <View>
+                    <TouchableOpacity
+                      className="flex flex-row items-center justify-center w-1/2 rounded-lg mx-4 p-3 mt-8"
+                      style={{ backgroundColor: "#AC3958" }}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/operador/homeOp/startRouteOp",
+                          params: {
+                            data: JSON.stringify(filteredData),
+                            crData: JSON.stringify(
+                              dataOperadorwhitCR.crData[0]
+                            ),
+                          },
+                        })
+                      }
+                    >
+                      {StartRouteIconNormal()}
+                      <Text className="font-normal text-xl text-center text-white">
+                        Iniciar Ruta
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {dataRoute[0]?.estatus_ruta === 2 && (
+                  <View>
+                    <TouchableOpacity
+                      className="flex flex-row items-center justify-center w-1/2 rounded-lg mx-4 p-3 mt-8"
+                      style={{ backgroundColor: "#AC3958" }}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/operador/homeOp/findRoteOp",
+                          params: {
+                            data: JSON.stringify(filteredData),
+                            crData: JSON.stringify(
+                              dataOperadorwhitCR.crData[0]
+                            ),
+                          },
+                        })
+                      }
+                    >
+                      {StartRouteIconNormal()}
+                      <Text className="font-normal text-xl text-center text-white">
+                        Finalizar Ruta
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
             )}
           </ScrollView>
         </SafeAreaView>

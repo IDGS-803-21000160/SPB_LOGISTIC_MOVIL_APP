@@ -1,19 +1,21 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
   Alert,
-  Image,
-  TouchableOpacity,
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { uploadImageAsync } from "../../../utils/firebaseStorage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Spinner from "../../../components/common/Spinner";
+import { uploadFileAsync } from "../../../utils/firebaseStorage";
+
 import * as ImagePicker from "expo-image-picker";
+import Spinner from "../../../components/common/Spinner";
 
 const { width } = Dimensions.get("window");
 
@@ -29,7 +31,26 @@ const CierreRutaForm = () => {
   const [idRutaOperador, setIdRutaOperador] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const { data, crData } = useLocalSearchParams();
+  const dataRoute = JSON.parse(data);
+  const datosCR = JSON.parse(crData);
+
+  //Variables datos de la ruta
+  const [numRuta, setNumRuta] = useState("");
+  const [lpsAsignados, setLpsAsignados] = useState("");
+  const [remisionesAsignadas, setRemisionesAsignadas] = useState("");
+  const [ruta, setRuta] = useState("");
+  const [zona, setZona] = useState("");
+
   useEffect(() => {
+    console.log("🥎Data de la ruta:", dataRoute[0][0]);
+    console.log("🐽Data CR:", datosCR);
+
+    setNumRuta(dataRoute[0][0].numero_ruta);
+    setLpsAsignados(dataRoute[0][0].lps_asignados);
+    setRemisionesAsignadas(dataRoute[0][0].remisiones_asignadas);
+    setRuta(dataRoute[0][0].tipo_ruta);
+    setZona(dataRoute[0][0].zona);
     AsyncStorage.getItem("id_operador").then((id) => {
       setIdRutaOperador(id);
     });
@@ -61,28 +82,30 @@ const CierreRutaForm = () => {
       let urlKilometraje = "";
 
       if (capturaSimplieroute2) {
-        urlSimple = await uploadImageAsync(
+        urlSimple = await uploadFileAsync(
           capturaSimplieroute2,
-          `cierreRuta/${idRutaOperador}/simple_${Date.now()}.jpg`
+          `cierreRuta/${idRutaOperador}/simple_${Date.now()}.jpg`,
+          "image/jpeg"
         );
       }
       if (imagenKilometraje) {
-        urlKilometraje = await uploadImageAsync(
+        urlKilometraje = await uploadFileAsync(
           imagenKilometraje,
-          `cierreRuta/${idRutaOperador}/km_${Date.now()}.jpg`
+          `cierreRuta/${idRutaOperador}/km_${Date.now()}.jpg`,
+          "image/jpeg"
         );
       }
 
       // 2) armo payload (puede ser JSON en vez de FormData)
       const payload = {
-        id_ruta_operador: parseInt(idRutaOperador, 10),
+        idRutaOperador: parseInt(idRutaOperador, 10),
         kilometraje_final: kilometrajeFinal,
         lps_exitosos: lpsExitosos,
         lps_fallidos: lpsFallidos,
         remisiones_finales: remisionesFinales,
         visitados,
         cancelados,
-        foto_simple_url: urlSimple,
+        capturaSimplieroute2: urlSimple,
         foto_km_url: urlKilometraje,
       };
 
@@ -109,7 +132,7 @@ const CierreRutaForm = () => {
             <Text className="font-bold text-2xl text-center">
               Form. Cierre de ruta
             </Text>
-            <Text className="text-center">LN-FLTSPB-10</Text>
+            <Text className="text-center">{numRuta}</Text>
             <View className="mt-4">
               <Text className=" text-sm text-gray-500">
                 Finalizaras la ruta, con las siguientes especificaciones
@@ -117,20 +140,21 @@ const CierreRutaForm = () => {
               <View className="mt-4">
                 <Text className="text-sm text-gray-500">
                   Lps Asignados a la ruta:{" "}
-                  <Text className="font-bold text-gray-700">24</Text>
+                  <Text className="font-bold text-gray-700">
+                    {lpsAsignados}
+                  </Text>
                 </Text>
 
                 <Text className=" text-sm text-gray-500">
                   Remisiones asignadas a la ruta:{" "}
-                  <Text className="font-bold text-gray-700">24</Text>
+                  <Text className="font-bold text-gray-700">
+                    {remisionesAsignadas}
+                  </Text>
                 </Text>
                 <Text className=" text-sm text-gray-500">
-                  Ruta {""}
-                  <Text className="font-bold text-gray-700">Local</Text> con
-                  zona a{" "}
-                  <Text className="font-bold text-gray-700">
-                    León Guanajuato
-                  </Text>
+                  Ruta <Text className="font-bold text-gray-700">{ruta}</Text>{" "}
+                  con zona a{" "}
+                  <Text className="font-bold text-gray-700">{zona}</Text>
                 </Text>
               </View>
             </View>
