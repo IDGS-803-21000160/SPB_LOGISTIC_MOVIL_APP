@@ -1,34 +1,33 @@
+import ToastSuccess from "@/src/components/common/alerts/ToastSuccess";
 import Stepper from "@/src/components/common/Stepper";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import DropDownPicker from "react-native-dropdown-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
   Text,
   TextInput,
-  Button,
-  StyleSheet,
-  ScrollView,
-  Dimensions,
   TouchableOpacity,
-  Image,
-  Animated,
-  SafeAreaView,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import { Svg, Path } from "react-native-svg";
-import styles from "./styles/RegistrationCR";
-import { useRouter } from "expo-router";
-import { useUserStore } from "../../../store/userStore";
-import ToastSuccess from "@/src/components/common/alerts/ToastSuccess";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getFormattedDateMexico } from "../../../utils/dateFormatting";
-import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
-import { useFocusEffect } from "@react-navigation/native";
+import DropDownPicker from "react-native-dropdown-picker";
+import { Path, Svg } from "react-native-svg";
 import WarningAlert from "../../../components/common/informativeAlerts/warningAlert";
+import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
+import { useUserStore } from "../../../store/userStore";
+import { getFormattedDateMexico } from "../../../utils/dateFormatting";
+import styles from "./styles/RegistrationCR";
 
 const { width, height } = Dimensions.get("window");
 
@@ -111,6 +110,8 @@ export default function RoutePartnerRegistrationCR() {
 
   const [storageData, setStorageData] = useState(null);
 
+  //Variable para el modal de agregar usuarios
+
   // ----------------------------------------------------------- Logica de la pantalla -----------------------------------------------------------
   const resetForm = () => {
     setStep(0);
@@ -133,6 +134,7 @@ export default function RoutePartnerRegistrationCR() {
       id_usuario: null,
       operadores: [],
     });
+    setButtonNext(true);
   };
 
   useFocusEffect(
@@ -146,6 +148,33 @@ export default function RoutePartnerRegistrationCR() {
 
   //Funcion para agregar operadores
   const addUnaryOperator = () => {
+    // Validación de campos requeridos
+    if (
+      !tipoRuta ||
+      !numRuta ||
+      !zona ||
+      !numLPS ||
+      !remisiones ||
+      !idOperador
+    ) {
+      Alert.alert(
+        "Campos incompletos",
+        "Por favor, completa todos los campos antes de registrar.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // Validación de remisiones no mayores que LPS
+    if (Number(remisiones) > Number(numLPS)) {
+      Alert.alert(
+        "Error en los datos",
+        "El número de remisiones no puede ser mayor que el número de LPS.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     const datos = {
       categoria_ruta: tipoRuta,
       fecha_registro: getFormattedDateMexico(),
@@ -242,6 +271,18 @@ export default function RoutePartnerRegistrationCR() {
     }
   }, [selectedUser]);
 
+  useEffect(() => {
+    if (selectedUser && typeOfRoute === "rutaCompartida") {
+      setSocio(selectedUser.nombre);
+      setNameOperador(selectedUser.nombre);
+      setIdOperador(selectedUser.id_persona);
+      setModalAddUsers(true);
+
+      // Opcional: limpiar para que no se vuelva a disparar
+      useUserStore.getState().setSelectedUser(null);
+    }
+  }, [selectedUser, typeOfRoute]);
+
   const getAsyncStorage = async () => {
     try {
       const registros = await AsyncStorage.getItem("authData");
@@ -265,6 +306,8 @@ export default function RoutePartnerRegistrationCR() {
     }
   };
 
+  const cleanAfterNavigate = () => {};
+
   const form = () => {
     return (
       <>
@@ -276,14 +319,6 @@ export default function RoutePartnerRegistrationCR() {
           </View>
           <View style={[styles.box, styles.box2]}>
             <Text>{registros?.length}</Text>
-          </View>
-          <View style={[styles.box, styles.box3]}>
-            <TouchableOpacity
-              className="rounded w-full justify-center items-center"
-              onPress={() => setuserModal(true)}
-            >
-              <Text>Ver</Text>
-            </TouchableOpacity>
           </View>
         </View>
         {/*Botones para seleccionar el tipo de ruta*/}
@@ -311,6 +346,10 @@ export default function RoutePartnerRegistrationCR() {
             }
             style={[styles.button, styles.buttonRight]}
             onPress={() => {
+              useUserStore.getState().setSelectedUser(null);
+              setSocio("");
+              setNameOperador("");
+              setIdOperador("");
               setTypeOfRoute("rutaCompartida");
               console.log("Settings pressed");
             }}
@@ -399,24 +438,39 @@ export default function RoutePartnerRegistrationCR() {
 
   const successfullPage = () => {
     return (
-      <View className="">
-        <Text className="text-3xl m-5 font-bold color-red-500">
-          Registro exitoso
-        </Text>
-        <Image
-          style={styles.logo}
-          source={require("@/assets/images/SPB_Camion_Logo_Editable.png")}
-        />
-        <View className="ml-5">
-          <Text className="text-xl font-bold">Registros realizados:</Text>
-          <Text className="text-xl font-light">{registros.length}</Text>
-          <Text className="text-xl font-bold">Operadores Asignados</Text>
-          <Text className="text-xl font-light">{registros.length}</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16 }}>
+        <View className="items-center">
+          <Text className="text-3xl m-5 font-bold color-red-500">
+            Registro exitoso
+          </Text>
+          <Image
+            style={styles.logo}
+            source={require("@/assets/images/SPB_Camion_Logo_Editable.png")}
+          />
+          <View className="ml-5">
+            <Text className="text-xl font-bold">Registros realizados:</Text>
+            <Text className="text-xl font-light">{registros.length}</Text>
 
-          <Text className="text-xl font-bold">Rutas Asignadas</Text>
-          <Text className="text-xl font-light">{registros.length}</Text>
+            <Text className="text-xl font-bold">Rutas Asignadas</Text>
+            <Text className="text-xl font-light">{registros.length}</Text>
+          </View>
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#C64560",
+              padding: 16,
+              borderRadius: 10,
+              marginTop: 20,
+            }}
+            onPress={() => resetForm()}
+          >
+            <Text
+              style={{ color: "#fff", textAlign: "center", fontWeight: "bold" }}
+            >
+              Volver a registrar
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     );
   };
 
@@ -677,28 +731,6 @@ export default function RoutePartnerRegistrationCR() {
           </ScrollView>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-    );
-  };
-
-  const modalToViewUsers = () => {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={userModal}
-        onRequestClose={() => {
-          setuserModal(false);
-        }}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>
-              ¡Hola! Este es un modal nativo.
-            </Text>
-            <Button title="Cerrar Modal" onPress={() => setuserModal(false)} />
-          </View>
-        </View>
-      </Modal>
     );
   };
 
@@ -1004,7 +1036,6 @@ export default function RoutePartnerRegistrationCR() {
 
         <Stepper currentStep={step} />
       </View>
-      {modalToViewUsers()}
       {modalToAddSharedUsers()}
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         {renderStepContent()}
