@@ -1,5 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -12,6 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { postCierreRuta } from "../../../services/operadorServices/finruta";
+import { getFormattedDateMexico } from "../../../utils/dateFormatting";
 import { uploadFileAsync } from "../../../utils/firebaseStorage";
 
 import * as ImagePicker from "expo-image-picker";
@@ -20,6 +21,8 @@ import Spinner from "../../../components/common/Spinner";
 const { width } = Dimensions.get("window");
 
 const CierreRutaForm = () => {
+  const router = useRouter();
+
   const [capturaSimplieroute2, setCapturaSimplieroute2] = useState(null);
   const [imagenKilometraje, setImagenKilometraje] = useState(null);
   const [kilometrajeFinal, setKilometrajeFinal] = useState("");
@@ -51,9 +54,7 @@ const CierreRutaForm = () => {
     setRemisionesAsignadas(dataRoute[0][0].remisiones_asignadas);
     setRuta(dataRoute[0][0].tipo_ruta);
     setZona(dataRoute[0][0].zona);
-    AsyncStorage.getItem("id_operador").then((id) => {
-      setIdRutaOperador(id);
-    });
+    setIdRutaOperador(dataRoute[0][0].id_ruta_operador);
   }, []);
 
   const seleccionarImagen = async (setter) => {
@@ -69,9 +70,58 @@ const CierreRutaForm = () => {
     }
   };
 
+  const postServiceCierreRuta = async (payload) => {
+    try {
+      const response = await postCierreRuta(payload);
+      if (response) {
+        Alert.alert("Éxito", "Cierre de ruta registrado correctamente");
+        router.back();
+      } else {
+        Alert.alert("Error", "No se pudo registrar el Cierre de ruta");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Ocurrió un error al registrar el Cierre de ruta");
+    }
+  };
+
   const handleSubmit = async () => {
     if (!kilometrajeFinal) {
       Alert.alert("Atención", "El kilometraje final es obligatorio");
+      return;
+    }
+
+    if (!lpsExitosos) {
+      Alert.alert("Atención", "Los LPS exitosos son obligatorios");
+      return;
+    }
+
+    if (!lpsFallidos) {
+      Alert.alert("Atención", "Los LPS fallidos son obligatorios");
+      return;
+    }
+
+    if (!remisionesFinales) {
+      Alert.alert("Atención", "Las remisiones finales son obligatorias");
+      return;
+    }
+
+    if (!visitados) {
+      Alert.alert("Atención", "El número de visitados es obligatorio");
+      return;
+    }
+
+    if (!cancelados) {
+      Alert.alert("Atención", "El número de cancelados es obligatorio");
+      return;
+    }
+
+    if (!capturaSimplieroute2) {
+      Alert.alert("Atención", "La captura Simplieroute final es obligatoria");
+      return;
+    }
+
+    if (!imagenKilometraje) {
+      Alert.alert("Atención", "La imagen del kilometraje final es obligatoria");
       return;
     }
     setLoading(true);
@@ -98,16 +148,19 @@ const CierreRutaForm = () => {
 
       // 2) armo payload (puede ser JSON en vez de FormData)
       const payload = {
-        idRutaOperador: parseInt(idRutaOperador, 10),
-        kilometraje_final: kilometrajeFinal,
-        lps_exitosos: lpsExitosos,
-        lps_fallidos: lpsFallidos,
-        remisiones_finales: remisionesFinales,
+        idRutaOperador: idRutaOperador,
+        capturaSimplieroute2: urlSimple,
+        lpsExitosos: lpsExitosos,
+        lpsFallidos: lpsFallidos,
+        remisionesFinales: remisionesFinales,
+        fechaCierre: getFormattedDateMexico(),
+        kilometrajeFinal: kilometrajeFinal,
+        imagenKilometraje: urlKilometraje,
         visitados,
         cancelados,
-        capturaSimplieroute2: urlSimple,
-        foto_km_url: urlKilometraje,
       };
+
+      const postResponse = await postServiceCierreRuta(payload);
 
       // 3) llamo a tu servicio para guardar todo (ya sea en tu API o en Firestore)
       console.log("Payload a enviar:", payload);
