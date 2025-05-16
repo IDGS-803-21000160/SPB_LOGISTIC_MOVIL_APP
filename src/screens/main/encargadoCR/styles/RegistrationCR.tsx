@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   headerText: {
-    paddingTop: 70,
+    //paddingTop: 70,
     fontSize: 15,
     fontWeight: "normal",
     marginBottom: 9,
