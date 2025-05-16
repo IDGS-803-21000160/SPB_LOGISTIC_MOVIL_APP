@@ -3,7 +3,7 @@ import Stepper from "@/src/components/common/Stepper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -321,7 +321,7 @@ export default function RoutePartnerRegistrationCR() {
             <Text>{registros?.length}</Text>
           </View>
         </View>
-        {/*Botones para seleccionar el tipo de ruta*/}
+        {/Botones para seleccionar el tipo de ruta/}
         <View style={styles.containerBtn}>
           <TouchableOpacity
             className={typeOfRoute === "normal" ? "bg-red-100" : "bg-gray-100"}
@@ -366,9 +366,9 @@ export default function RoutePartnerRegistrationCR() {
             </Text>
           </TouchableOpacity>
         </View>
-        {/*Agregar rutas compartidas*/}
+        {/Agregar rutas compartidas/}
         {typeOfRoute === "rutaCompartida" ? sharedRouteForm() : null}
-        {/*Formulario de registro*/}
+        {/Formulario de registro/}
         <ScrollView
           contentContainerStyle={styles.container}
           nestedScrollEnabled={true}
@@ -689,7 +689,7 @@ export default function RoutePartnerRegistrationCR() {
                   <Text style={styles.buttonTextAddMore}>Agregar Socio</Text>
                 </View>
               </TouchableOpacity>
-              {/*Apartado para pintar a los Operadores que compartiran la Ruta*/}
+              {/Apartado para pintar a los Operadores que compartiran la Ruta/}
               <View className="mt-6">
                 {registrosCompartidos.operadores.length == 0 ? (
                   <WarningAlert message="Aqui se enlistaran los operadores que compartiran ruta y debes agregar al menos 2 operadores para poder reguistrar una ruta compartida" />
@@ -700,7 +700,7 @@ export default function RoutePartnerRegistrationCR() {
                   </>
                 )}
               </View>
-              {/*Boton para enviar los datos de la ruta compartida*/}
+              {/Boton para enviar los datos de la ruta compartida/}
               {registrosCompartidos.operadores.length >= 2 ? (
                 <TouchableOpacity
                   className=" p-4 rounded-xl mt-8 "
@@ -939,53 +939,85 @@ export default function RoutePartnerRegistrationCR() {
   };
 
   const abrirModalRutaCompartida = () => {
-    if (registrosCompartidos.operadores.length === 0) {
-      setRegistrosCompartidos({
-        numero_ruta: numRuta,
-        tipo_ruta: "Compartida",
-        categoria_ruta: tipoRuta,
-        lps_totales: Number(numTotalLPS),
-        remisiones_totales: Number(numTotalRemisiones),
-        fecha_registro: getFormattedDateMexico(),
-        id_cr: storageData?.cr,
-        id_usuario: storageData?.id_usuario,
-        operadores: [],
-      });
-    }
-    console.log("Ruta compartida:", registrosCompartidos);
+  // Validación: remisiones totales no deben ser mayores que LPS totales
+  if (Number(numTotalRemisiones) > Number(numTotalLPS)) {
+    Alert.alert(
+      "Error en los datos",
+      "El número total de remisiones no puede ser mayor que el número total de LPS.",
+      [{ text: "OK" }]
+    );
+    return;
+  }
 
-    setModalAddUsers(true);
+  if (registrosCompartidos.operadores.length === 0) {
+    setRegistrosCompartidos({
+      numero_ruta: numRuta,
+      tipo_ruta: "Compartida",
+      categoria_ruta: tipoRuta,
+      lps_totales: Number(numTotalLPS),
+      remisiones_totales: Number(numTotalRemisiones),
+      fecha_registro: getFormattedDateMexico(),
+      id_cr: storageData?.cr,
+      id_usuario: storageData?.id_usuario,
+      operadores: [],
+    });
+  }
+
+  console.log("Ruta compartida:", registrosCompartidos);
+  setModalAddUsers(true);
+};
+
+const agregarOperadorARutaCompartida = () => {
+  // Validación de campos requeridos
+  if (!zona || !numLPS || !remisiones || !idOperador) {
+    Alert.alert(
+      "Campos incompletos",
+      "Por favor, completa todos los campos antes de agregar un operador.",
+      [{ text: "OK" }]
+    );
+    return;
+  }
+
+  // Validación: Remisiones no deben ser mayores que LPS
+  if (Number(remisiones) > Number(numLPS)) {
+    Alert.alert(
+      "Error en los datos",
+      "El número de remisiones no puede ser mayor que el número de LPS.",
+      [{ text: "OK" }]
+    );
+    return;
+  }
+
+  const operador = {
+    id_operador: idOperador,
+    zona: zona,
+    lps_asignados: Number(numLPS),
+    remisiones_asignadas: Number(remisiones),
   };
 
-  const agregarOperadorARutaCompartida = () => {
-    const operador = {
-      id_operador: idOperador,
-      zona: zona,
-      lps_asignados: Number(numLPS),
-      remisiones_asignadas: Number(remisiones),
-    };
-
-    const operadoresTemporales = {
-      id_operador: idOperador,
-      zona: zona,
-      lps_asignados: Number(numLPS),
-      remisiones_asignadas: Number(remisiones),
-      nombre: nameOperador,
-    };
-
-    setOperadoresTemp((prev) => [...prev, operadoresTemporales]);
-
-    setRegistrosCompartidos((prev) => ({
-      ...prev,
-      operadores: [...prev.operadores, operador],
-    }));
-
-    console.log("Operadores info:", operadoresTemp);
-
-    clearModalForm();
-    setToastMessage("Operador agregado a ruta compartida correctamente");
-    setToastVisible(true);
+  const operadoresTemporales = {
+    id_operador: idOperador,
+    zona: zona,
+    lps_asignados: Number(numLPS),
+    remisiones_asignadas: Number(remisiones),
+    nombre: nameOperador,
   };
+
+  setOperadoresTemp((prev) => [...prev, operadoresTemporales]);
+
+  setRegistrosCompartidos((prev) => ({
+    ...prev,
+    operadores: [...prev.operadores, operador],
+  }));
+
+  clearModalForm();
+  setToastMessage("Operador agregado a ruta compartida correctamente");
+  setToastVisible(true);
+};
+
+
+
+
 
   const addOperadores = () => {
     setRegistros((prev) => {
