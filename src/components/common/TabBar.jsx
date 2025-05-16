@@ -71,10 +71,9 @@ const ProfileIcon = ({ color }) => (
   </Svg>
 );
 
-const insets = useSafeAreaInsets();
-const bottomInset = insets.bottom;
-
 const TabBar = ({ state, descriptors, navigation }) => {
+  const insets = useSafeAreaInsets();
+  const bottomInset = insets.bottom;
   const tabIcons = {
     home: { icon: Home, name: "Inicio" },
     homeOp: { icon: Home, name: "Inicio" },
@@ -87,7 +86,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
   };
 
   return (
-    <View style={[styles.tabbar, { bottom: bottomInset + 2 }]}>
+    <View style={[styles.tabbar, { bottom: bottomInset + 10 }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label =

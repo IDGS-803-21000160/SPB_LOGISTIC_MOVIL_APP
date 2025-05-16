@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     padding: 16,
     width: width * 0.9,
     flex: 1,
-    marginTop: -25,
+    marginTop: -50,
   },
   box: {
     width: width * 0.25,

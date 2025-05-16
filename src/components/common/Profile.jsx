@@ -1,14 +1,29 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
-import { useAuth } from "../../context/AuthContext";
-import { Dimensions } from "react-native";
-import { getInitials, capitalizeEachWord } from "../../utils/textUtils";
+// Profile.js
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React from "react";
+import {
+  Dimensions,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
+import { capitalizeEachWord, getInitials } from "../../utils/textUtils";
 
-const { width, height } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const Profile = ({ userData }) => {
+const BANNER_HEIGHT = SCREEN_WIDTH * 0.4; // 40% ancho pantalla
+const AVATAR_SIZE = Math.min(Math.max(SCREEN_WIDTH * 0.3, 80), 150);
+const TABBAR_HEIGHT = 70; // aprox. alto de tu TabBar
+const EXTRA_MARGIN = 20; // un poco de espacio extra
+
+export default function Profile({ userData }) {
+  const insets = useSafeAreaInsets();
   const { logout } = useAuth();
   const router = useRouter();
 
@@ -18,98 +33,181 @@ const Profile = ({ userData }) => {
   };
 
   return (
-    <View className="flex-1 bg-white mt-16 w-full">
-      {/* Banner */}
-      <View
-        style={{ backgroundColor: "#C64560" }}
-        className="h-40 bg-red-500  overflow-hidden relative"
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + TABBAR_HEIGHT + EXTRA_MARGIN,
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Imagen de fondo tipo banner */}
-        <View className="absolute top-0 left-0 right-0 bottom-0 ">
+        {/* Banner */}
+        <View style={[styles.banner, { height: BANNER_HEIGHT }]}>
           <Image
             source={require("../../../assets/images/logoW.png")}
-            resizeMode="cover"
-            className="mt-4 p-5"
-            style={{
-              width: "60%",
-              height: 76,
-            }}
+            resizeMode="contain"
+            style={styles.bannerImage}
           />
         </View>
-      </View>
-      {/* Imagen de perfil */}
-      <View className="items-center -mt-16 z-10">
-        <View
-          className="w-32 h-32 rounded-full border-4 border-white bg-gray-100"
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text className="text-gray-500 text-5xl font-extrabold">
-            {getInitials(userData?.detalles?.nombre)}
+
+        {/* Avatar */}
+        <View style={styles.avatarWrapper}>
+          <View
+            style={[
+              styles.avatar,
+              {
+                width: AVATAR_SIZE,
+                height: AVATAR_SIZE,
+                borderRadius: AVATAR_SIZE / 2,
+              },
+            ]}
+          >
+            <Text style={[styles.avatarText, { fontSize: AVATAR_SIZE * 0.4 }]}>
+              {getInitials(userData?.detalles?.nombre)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Nombre */}
+        <View style={styles.center}>
+          <Text style={styles.nameText}>
+            {capitalizeEachWord(userData?.detalles?.nombre) ??
+              "Nombre no disponible"}
+          </Text>
+          <Text style={styles.usernameText}>
+            @{userData?.detalles?.id_unico ?? "usuario"}
           </Text>
         </View>
-      </View>
-      {/* Nombre y username */}
-      <View className="items-center mt-4">
-        <Text className="text-2xl font-bold text-gray-900">
-          {capitalizeEachWord(userData?.detalles?.nombre) ??
-            "Nombre no disponible"}
-        </Text>
-        <Text className="text-gray-500">
-          @{userData?.detalles?.id_unico ?? "usuario"}
-        </Text>
-      </View>
-      {/* Datos adicionales */}
-      <View>
-        <View className="bg-gray-200 h-0.5 mt-4 mx-4"></View>
 
-        <Text className="text-xl text-gray-700 mt-4 px-6 font-medium">
-          Información Personal
-        </Text>
-        <View className="bg-gray-200 h-0.5 mt-4 mx-4"></View>
-      </View>
-      <View className="mt-6 px-6">
-        <Text className="text-xl text-gray-700">Número telefónico</Text>
-        <Text className="text-lg text-gray-700 font-semibold">
-          {userData?.detalles?.numero_telefonico}
-        </Text>
-        <Text className="text-xl text-gray-700 mt-4 ">Domicilio</Text>
-        <Text className="text-lg text-gray-700 mt-2 font-semibold ">
-          {userData?.detalles?.domicilio == "N/A"
-            ? "Domicilio no disponible"
-            : userData?.detalles?.domicilio}
-        </Text>
-        <Text className="text-xl text-gray-700 mt-4">CURP</Text>
-        <Text className="text-lg text-gray-700 font-semibold">
-          {userData?.detalles?.curp == "N/A"
-            ? "CURP no disponible"
-            : userData?.detalles?.curp}
-        </Text>
-        <Text className="text-xl text-gray-700 mt-4">Tipo de Usuario</Text>
-        <Text className="text-lg text-gray-700 mt-2 font-semibold ">
-          {userData?.detalles?.tipo}
-        </Text>
-      </View>
-      {/* Botón para cerrar sesión */}
-      <View className="mt-20 px-6">
-        <TouchableOpacity
-          onPress={() => {
-            handleLogout();
-          }}
-          className="py-3 rounded-lg flex-row items-center justify-center"
-          style={{
-            backgroundColor: "white",
-          }}
-        >
-          <Text className="text-center text-red-700 text-xl font-semibold">
-            Cerrar Sesión
+        {/* Sección Información Personal */}
+        <View style={styles.sectionSeparator} />
+        <Text style={styles.sectionTitle}>Información Personal</Text>
+        <View style={styles.sectionSeparator} />
+
+        <View style={styles.infoBlock}>
+          <Text style={styles.infoLabel}>Número telefónico</Text>
+          <Text style={styles.infoValue}>
+            {userData?.detalles?.numero_telefonico}
           </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
 
-export default Profile;
+          <Text style={styles.infoLabel}>Domicilio</Text>
+          <Text style={styles.infoValue}>
+            {userData?.detalles?.domicilio === "N/A"
+              ? "No disponible"
+              : userData?.detalles?.domicilio}
+          </Text>
+
+          <Text style={styles.infoLabel}>CURP</Text>
+          <Text style={styles.infoValue}>
+            {userData?.detalles?.curp === "N/A"
+              ? "No disponible"
+              : userData?.detalles?.curp}
+          </Text>
+
+          <Text style={styles.infoLabel}>Tipo de Usuario</Text>
+          <Text style={styles.infoValue}>{userData?.detalles?.tipo}</Text>
+        </View>
+
+        {/* Botón Cerrar Sesión */}
+        <View style={styles.logoutWrapper}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  flex: {
+    flex: 1,
+  },
+  banner: {
+    width: "100%",
+    backgroundColor: "#C64560",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bannerImage: {
+    width: "60%",
+    height: "60%",
+  },
+  avatarWrapper: {
+    marginTop: -AVATAR_SIZE / 2,
+    alignItems: "center",
+    zIndex: 10,
+  },
+  avatar: {
+    backgroundColor: "#eee",
+    borderWidth: 4,
+    borderColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    fontWeight: "800",
+    color: "#999",
+  },
+  center: {
+    alignItems: "center",
+    marginTop: 12,
+  },
+  nameText: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#222",
+  },
+  usernameText: {
+    fontSize: 16,
+    color: "#666",
+    marginTop: 4,
+  },
+  sectionSeparator: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginVertical: 16,
+    marginHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#444",
+    marginLeft: 20,
+  },
+  infoBlock: {
+    paddingHorizontal: 20,
+  },
+  infoLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#555",
+    marginTop: 12,
+  },
+  infoValue: {
+    fontSize: 16,
+    color: "#222",
+    marginTop: 4,
+  },
+  logoutWrapper: {
+    marginTop: 30,
+    paddingHorizontal: 20,
+  },
+  logoutButton: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#C64560",
+  },
+  logoutText: {
+    color: "#C64560",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+});
