@@ -370,8 +370,12 @@ export default function RoutePartnerRegistrationCR() {
         {typeOfRoute === "rutaCompartida" ? sharedRouteForm() : null}
         {/*Formulario de registro*/}
         <ScrollView
-          contentContainerStyle={styles.container}
           nestedScrollEnabled={true}
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 10,
+            paddingBottom: 400,
+          }}
         >
           {typeOfRoute === "normal" ? normalRouteForm() : null}
         </ScrollView>
@@ -438,39 +442,53 @@ export default function RoutePartnerRegistrationCR() {
 
   const successfullPage = () => {
     return (
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16 }}>
-        <View className="items-center">
-          <Text className="text-3xl m-5 font-bold color-red-500">
-            Registro exitoso
-          </Text>
-          <Image
-            style={styles.logo}
-            source={require("@/assets/images/SPB_Camion_Logo_Editable.png")}
-          />
-          <View className="ml-5">
-            <Text className="text-xl font-bold">Registros realizados:</Text>
-            <Text className="text-xl font-light">{registros.length}</Text>
+      <>
+        <Text className="text-3xl m-5 font-bold color-red-500">
+          Registro exitoso
+        </Text>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 10,
+            paddingBottom: 300,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View>
+            <Image
+              style={styles.logo}
+              source={require("@/assets/images/SPB_Camion_Logo_Editable.png")}
+            />
+            <View className="mx-2">
+              <Text className="text-xl font-bold">Registros realizados:</Text>
+              <Text className="text-xl font-light">{registros.length}</Text>
 
-            <Text className="text-xl font-bold">Rutas Asignadas</Text>
-            <Text className="text-xl font-light">{registros.length}</Text>
-          </View>
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#C64560",
-              padding: 16,
-              borderRadius: 10,
-              marginTop: 20,
-            }}
-            onPress={() => resetForm()}
-          >
-            <Text
-              style={{ color: "#fff", textAlign: "center", fontWeight: "bold" }}
+              <Text className="text-xl font-bold">Rutas Asignadas</Text>
+              <Text className="text-xl font-light">{registros.length}</Text>
+            </View>
+            <TouchableOpacity
+              className="mx-2"
+              style={{
+                backgroundColor: "#C64560",
+                padding: 16,
+                borderRadius: 10,
+                marginTop: 20,
+              }}
+              onPress={() => resetForm()}
             >
-              Volver a registrar
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+              <Text
+                style={{
+                  color: "#fff",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                }}
+              >
+                Volver a registrar
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </>
     );
   };
 
@@ -482,14 +500,21 @@ export default function RoutePartnerRegistrationCR() {
           Operador
         </Text>
         <View className="flex-row items-center w-full  ">
-          <TextInput
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
-            editable={false}
-            style={styles.input}
-            placeholder="Ingresa el nombre del socio"
-            value={socio}
-            onChangeText={(text) => setSocio(text)}
-          />
+          <TouchableOpacity
+            className=" text-gray-900 text-md rounded-full h-14 flex-1 "
+            onPress={() => {
+              router.push("/encargadoCR/addQuickReport/Users");
+            }}
+          >
+            <TextInput
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
+              editable={false}
+              style={styles.input}
+              placeholder="Ingresa el nombre del socio"
+              value={socio}
+              onChangeText={(text) => setSocio(text)}
+            />
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonSearch}
             className="p-2.5 ml-2 text-sm font-medium text-white  rounded-lg border border-red-400 "

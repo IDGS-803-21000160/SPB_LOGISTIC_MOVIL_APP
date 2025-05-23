@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   headerText: {
-    //paddingTop: 70,
+    paddingTop: 40,
     fontSize: 15,
     fontWeight: "normal",
     marginBottom: 9,
@@ -143,8 +143,8 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   logo: {
-    width: 350,
-    height: 350,
+    width: 200,
+    height: 200,
     resizeMode: "contain",
   },
   picker: {
