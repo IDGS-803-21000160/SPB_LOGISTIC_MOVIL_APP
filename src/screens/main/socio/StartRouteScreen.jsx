@@ -1,9 +1,7 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -17,6 +15,7 @@ import {
 } from "react-native";
 import Spinner from "../../../components/common/Spinner";
 import { insertInicioRuta } from "../../../services/operadorServices/iniciorutaService";
+import { getRutasCompartidas } from "../../../services/userServices/operadoresServices";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting";
 import { uploadFileAsync } from "../../../utils/firebaseStorage";
 
@@ -26,29 +25,33 @@ const InicioRutaForm = () => {
   const [kilometrajeInicial, setKilometrajeInicial] = useState("");
   const [imagenOdometro, setImagenOdometro] = useState(null);
   const [manifiestoPdf, setManifiestoPdf] = useState(null);
-  const [idRutaOperador, setIdRutaOperador] = useState(0);
+  const [rutas, setRutas] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const { data, crData } = useLocalSearchParams();
-  const dataRoute = JSON.parse(data);
-  const datosCR = JSON.parse(crData);
-
-  //Variables datos de la ruta
   const [numRuta, setNumRuta] = useState("");
 
-  useEffect(() => {
-    console.log("Data de la ruta:", dataRoute[0][0]);
-    console.log("Data CR:", datosCR);
+  const { data } = useLocalSearchParams();
+  const dataRoute = JSON.parse(data);
+  const infoRuta = dataRoute?.[0]?.[0] || {};
 
-    AsyncStorage.getItem("id_operador").then((id) => {
-      setIdRutaOperador(id);
-    });
+  // Carga inicial de rutas compartidas
+  useEffect(() => {
+    if (infoRuta.id_ruta) {
+      getRutasCompartidas(infoRuta.id_ruta)
+        .then((arr) => arr && setRutas(arr))
+        .catch(console.error);
+      setNumRuta(infoRuta.numero_ruta || "");
+    }
   }, []);
 
-  useEffect(() => {
-    setNumRuta(dataRoute[0][0].numero_ruta);
-  }, []);
+  // Determinar si este operador es el primero (id_ruta_operador más bajo)
+  const currentIdRutaOper = infoRuta.id_ruta_operador;
+  const minIdRutaOper =
+    rutas.length > 1
+      ? Math.min(...rutas.map((r) => r.id_ruta_operador))
+      : currentIdRutaOper;
+  const esPrimerOperador = currentIdRutaOper === minIdRutaOper;
 
+  // Selección de imagen y PDF
   const seleccionarImagen = async () => {
     const { assets, canceled } = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -66,155 +69,131 @@ const InicioRutaForm = () => {
     if (res.canceled) {
       setManifiestoPdf(null);
     } else {
-      // res.assets[0].uri en SDKs recientes
-      const uri = res.assets?.[0]?.uri ?? res.uri;
-      setManifiestoPdf(uri);
+      setManifiestoPdf(res.assets?.[0]?.uri ?? res.uri);
     }
   };
 
-  const insertarInicioRuta = async (payload) => {
-    try {
-      const response = await insertInicioRuta(payload);
-      if (response) {
-        Alert.alert("Éxito", "Inicio de ruta registrado correctamente");
-      } else {
-        Alert.alert("Error", "No se pudo registrar el inicio de ruta");
-      }
-    } catch (error) {
-      console.error("Error al insertar inicio de ruta:", error);
-      Alert.alert("Error", "Ocurrió un error al registrar el inicio de ruta");
-    }
-  };
-
+  // Envío del formulario
   const handleSubmit = async () => {
+    // Validaciones comunes
     if (!kilometrajeInicial)
       return Alert.alert("Atención", "Kilometraje obligatorio");
     if (!imagenOdometro)
       return Alert.alert("Atención", "Selecciona foto odómetro");
-    if (!manifiestoPdf) return Alert.alert("Atención", "Selecciona PDF");
+
+    // Si soy primer operador, también requiero PDF
+    if (esPrimerOperador && !manifiestoPdf)
+      return Alert.alert("Atención", "Selecciona PDF de manifiesto");
 
     setLoading(true);
     try {
-      if (!dataRoute[0][0].id_ruta_operador)
-        return Alert.alert("Atención", "No se encontró la ruta");
-
+      // Subir imagen siempre
       const imgUrl = await uploadFileAsync(
         imagenOdometro,
-        `inicioRuta/${
-          dataRoute[0][0].id_ruta_operador
-        }/odometro_${Date.now()}.jpg`,
+        `inicioRuta/${currentIdRutaOper}/odometro_${Date.now()}.jpg`,
         "image/jpeg"
       );
 
-      const pdfUrl = await uploadFileAsync(
-        manifiestoPdf,
-        `inicioRuta/${
-          dataRoute[0][0].id_ruta_operador
-        }/manifiesto_${Date.now()}.pdf`,
-        "application/pdf"
-      );
+      let pdfUrl = null;
+      if (esPrimerOperador) {
+        // Solo el primero sube el PDF
+        pdfUrl = await uploadFileAsync(
+          manifiestoPdf,
+          `inicioRuta/${currentIdRutaOper}/manifiesto_${Date.now()}.pdf`,
+          "application/pdf"
+        );
+      }
 
-      console.log("URL de imagen:", imgUrl);
-      console.log("URL de PDF:", pdfUrl);
-
+      // Construir payload
       const payload = {
-        id_ruta_operador: dataRoute[0][0].id_ruta_operador,
-        doc_manifiesto: pdfUrl,
+        id_ruta_operador: currentIdRutaOper,
         kilometraje_inicial: kilometrajeInicial,
-        imagen_kilometraje: imgUrl, // reemplaza con la URL real tras subir
+        imagen_kilometraje: imgUrl,
         fecha_inicio: getFormattedDateMexico(),
+        // Solo incluyo doc_manifiesto si soy primer operador
+        ...(esPrimerOperador && { doc_manifiesto: pdfUrl }),
       };
 
-      const postResponse = await insertarInicioRuta(payload);
-
-      console.log("Payload a enviar:", payload);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error al enviar:", error);
-      setLoading(false);
+      await insertInicioRuta(payload);
+      Alert.alert("Éxito", "Inicio de ruta registrado correctamente");
+      router.back();
+    } catch (e) {
+      console.error(e);
       Alert.alert("Error", "No se pudo registrar el inicio de ruta");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) return <Spinner />;
+
   return (
-    <>
-      {loading ? (
-        <Spinner />
-      ) : (
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {/* Encabezado */}
-          <View className="mb-9">
-            <Text className="font-bold text-2xl text-center">
-              Form. Inicio de ruta
-            </Text>
-            <Text className="text-center">{numRuta}</Text>
-            <View className="mt-4">
-              <Text className=" text-sm text-gray-500">
-                Registra el arranque de tu ruta con los siguientes datos
-              </Text>
-            </View>
-          </View>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View className="mb-9">
+        <Text className="font-bold text-2xl text-center">
+          Form. Inicio de ruta
+        </Text>
+        <Text className="text-center">{numRuta}</Text>
+        <Text className="mt-4 text-sm text-gray-500 text-center">
+          Registra el arranque de tu ruta con los siguientes datos
+        </Text>
+      </View>
 
-          <View style={styles.formContainer}>
-            {/* Kilometraje inicial */}
-            <View style={styles.field}>
-              <Text style={styles.label}>Kilometraje Inicial</Text>
-              <TextInput
-                style={styles.input}
-                value={kilometrajeInicial}
-                onChangeText={setKilometrajeInicial}
-                keyboardType="numeric"
-                placeholder="Ej. 12345"
-              />
-            </View>
+      <View style={styles.formContainer}>
+        {/* Kilometraje inicial */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Kilometraje Inicial</Text>
+          <TextInput
+            style={styles.input}
+            value={kilometrajeInicial}
+            onChangeText={setKilometrajeInicial}
+            keyboardType="numeric"
+            placeholder="Ej. 12345"
+          />
+        </View>
 
-            {/* Imagen del odómetro */}
-            <View style={styles.field}>
-              <Text style={styles.label}>Imagen Odómetro</Text>
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={seleccionarImagen}
-              >
-                <Text style={styles.uploadText}>Seleccionar Imagen</Text>
-              </TouchableOpacity>
-              {imagenOdometro && (
-                <Image
-                  source={{ uri: imagenOdometro }}
-                  style={styles.preview}
-                />
-              )}
-            </View>
+        {/* Imagen del odómetro */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Imagen Odómetro</Text>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={seleccionarImagen}
+          >
+            <Text style={styles.uploadText}>Seleccionar Imagen</Text>
+          </TouchableOpacity>
+          {imagenOdometro && (
+            <Image source={{ uri: imagenOdometro }} style={styles.preview} />
+          )}
+        </View>
 
-            {/* PDF de manifiesto */}
-            <View style={styles.field}>
-              <Text style={styles.label}>Manifiesto (PDF)</Text>
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={() => {
-                  Alert.alert("DEBUG", "Tocaste PDF");
-                  seleccionarPdf();
-                }}
-              >
-                <Text style={styles.uploadText}>Seleccionar PDF</Text>
-              </TouchableOpacity>
-              {manifiestoPdf && (
-                <Text style={{ marginTop: 8, color: "#555" }}>
-                  {manifiestoPdf.split("/").pop()}
-                </Text>
-              )}
-            </View>
-
-            {/* Botón enviar */}
+        {/* Manifiesto PDF: solo al primer operador */}
+        {esPrimerOperador ? (
+          <View style={styles.field}>
+            <Text style={styles.label}>Manifiesto (PDF)</Text>
             <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleSubmit}
+              style={styles.uploadButton}
+              onPress={seleccionarPdf}
             >
-              <Text style={styles.submitText}>Enviar</Text>
+              <Text style={styles.uploadText}>Seleccionar PDF</Text>
             </TouchableOpacity>
+            {manifiestoPdf && (
+              <Text style={{ marginTop: 8, color: "#555" }}>
+                {manifiestoPdf.split("/").pop()}
+              </Text>
+            )}
           </View>
-        </ScrollView>
-      )}
-    </>
+        ) : rutas.length > 1 ? (
+          <Text style={[styles.label, { color: "#AA0000", marginBottom: 18 }]}>
+            Ya existe un manifiesto subido por otro operador.
+          </Text>
+        ) : null}
+
+        {/* Botón Enviar: siempre habilitado */}
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitText}>Enviar</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
