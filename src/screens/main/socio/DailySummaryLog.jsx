@@ -1,5 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Image,
   SafeAreaView,
@@ -277,14 +277,14 @@ const DailySummaryLog = () => {
                     className="font-bold text-white text-md"
                     style={{ color: "white" }}
                   >
-                    Bienvenido
+                    Asignación por el CR
                   </Text>
                   <Text
                     className="font-normal text-white text-sm text-center"
                     style={{ color: "white" }}
                   >
                     {dataStorage
-                      ? dataStorage.detalles.nombre
+                      ? dataOperadorwhitCR?.crData[0]?.nombre
                       : "Usuario no identificado"}
                   </Text>
                 </View>
@@ -294,12 +294,12 @@ const DailySummaryLog = () => {
                 dataRoute[0]?.estatus_ruta == 2) ? (
                 <View className="mx-4 mb-4">
                   <Text className="mt-10 font-medium text-white text-lg">
-                    Asignación realizada porel CR
+                    Bienvenido
                   </Text>
                   <View className="flex flex-row items-center mt-2">
                     {CustomIcon()}
                     <Text className="font-semibold text-white text-2xl ml-4">
-                      {dataOperadorwhitCR?.crData[0]?.nombre}
+                      {dataStorage.detalles.nombre}
                     </Text>
                   </View>
                 </View>
@@ -401,57 +401,57 @@ const DailySummaryLog = () => {
             </View>
             {/*Boton de iniicar rutas*/}
             {filteredData[0]?.length >= 1 && (
-              <>
-                {dataRoute[0]?.estatus_ruta === 1 && (
-                  <View>
-                    <TouchableOpacity
-                      className="flex flex-row items-center justify-center w-1/2 rounded-lg mx-4 p-3 mt-8"
-                      style={{ backgroundColor: "#AC3958" }}
-                      onPress={() =>
-                        router.push({
-                          pathname: "/operador/homeOp/startRouteOp",
-                          params: {
-                            data: JSON.stringify(filteredData),
-                            crData: JSON.stringify(
-                              dataOperadorwhitCR.crData[0]
-                            ),
-                          },
-                        })
-                      }
-                    >
-                      {StartRouteIconNormal()}
-                      <Text className="font-normal text-xl text-center text-white">
-                        Iniciar Ruta
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+              <View className="flex flex-col items-center mt-8 space-y-4">
+                {/* Botón Iniciar Ruta */}
+                <TouchableOpacity
+                  disabled={dataRoute[0]?.estatus_ruta !== 1}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/operador/homeOp/startRouteOp",
+                      params: {
+                        data: JSON.stringify(filteredData),
+                        crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
+                      },
+                    })
+                  }
+                  className="flex flex-row items-center justify-center w-11/12 rounded-lg p-3"
+                  style={{
+                    backgroundColor:
+                      dataRoute[0]?.estatus_ruta === 1 ? "#AC3958" : "#CCC",
+                    opacity: dataRoute[0]?.estatus_ruta === 1 ? 1 : 0.6,
+                  }}
+                >
+                  {StartRouteIconNormal()}
+                  <Text className="font-normal text-xl text-center text-white ml-2">
+                    Iniciar Ruta
+                  </Text>
+                </TouchableOpacity>
 
-                {dataRoute[0]?.estatus_ruta === 2 && (
-                  <View>
-                    <TouchableOpacity
-                      className="flex flex-row items-center justify-center w-1/2 rounded-lg mx-4 p-3 mt-8"
-                      style={{ backgroundColor: "#AC3958" }}
-                      onPress={() =>
-                        router.push({
-                          pathname: "/operador/homeOp/findRoteOp",
-                          params: {
-                            data: JSON.stringify(filteredData),
-                            crData: JSON.stringify(
-                              dataOperadorwhitCR.crData[0]
-                            ),
-                          },
-                        })
-                      }
-                    >
-                      {StartRouteIconNormal()}
-                      <Text className="font-normal text-xl text-center text-white">
-                        Finalizar Ruta
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </>
+                {/* Botón Finalizar Ruta */}
+                <TouchableOpacity
+                  disabled={dataRoute[0]?.estatus_ruta !== 2}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/operador/homeOp/findRoteOp",
+                      params: {
+                        data: JSON.stringify(filteredData),
+                        crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
+                      },
+                    })
+                  }
+                  className="flex flex-row items-center justify-center w-11/12 rounded-lg p-3 mt-4"
+                  style={{
+                    backgroundColor:
+                      dataRoute[0]?.estatus_ruta === 2 ? "#AC3958" : "#CCC",
+                    opacity: dataRoute[0]?.estatus_ruta === 2 ? 1 : 0.6,
+                  }}
+                >
+                  {StartRouteIconNormal()}
+                  <Text className="font-normal text-xl text-center text-white ml-2">
+                    Finalizar Ruta
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
           </ScrollView>
         </SafeAreaView>

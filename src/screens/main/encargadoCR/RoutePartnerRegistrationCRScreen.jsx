@@ -964,6 +964,14 @@ export default function RoutePartnerRegistrationCR() {
   };
 
   const abrirModalRutaCompartida = () => {
+    if (!numRuta.trim() || !tipoRuta || !numTotalLPS || !numTotalRemisiones) {
+      Alert.alert(
+        "Campos incompletos",
+        "Por favor llena todos los campos antes de agregar un socio."
+      );
+      return;
+    }
+
     if (registrosCompartidos.operadores.length === 0) {
       setRegistrosCompartidos({
         numero_ruta: numRuta,

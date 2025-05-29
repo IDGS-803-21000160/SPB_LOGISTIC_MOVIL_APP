@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -39,7 +39,7 @@ const ListUsers = ({ handleSelectUser }) => {
   return (
     <>
       {/* Buscador y filtro de ciudad */}
-      <View>
+      <View className="bg-white ">
         <View className="flex-row items-center bg-gray-100 rounded-full mx-4 mt-4 px-4 py-2">
           <TextInput
             className="flex-1 text-base text-gray-800"

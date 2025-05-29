@@ -1,9 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import { StyleSheet } from "react-native";
 import {
   SafeAreaProvider,
-  SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import DailySummaryLog from "../../../src/screens/main/socio/DailySummaryLog";
@@ -24,8 +21,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-
-    top0: 0,
   },
   text: {
     color: "#fff",
