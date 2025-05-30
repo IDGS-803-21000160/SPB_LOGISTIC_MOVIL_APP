@@ -20,7 +20,7 @@ import {
 } from "../../../services/operadorServices/dataConsultsServices.js";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting.js";
 
-const DailySummaryLog = () => {
+const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
   const router = useRouter();
 
   const [filteredData, setFilteredData] = useState([]);
@@ -407,7 +407,7 @@ const DailySummaryLog = () => {
                   disabled={dataRoute[0]?.estatus_ruta !== 1}
                   onPress={() =>
                     router.push({
-                      pathname: "/operador/homeOp/startRouteOp",
+                      pathname: startRoutePath,
                       params: {
                         data: JSON.stringify(filteredData),
                         crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
@@ -432,7 +432,7 @@ const DailySummaryLog = () => {
                   disabled={dataRoute[0]?.estatus_ruta !== 2}
                   onPress={() =>
                     router.push({
-                      pathname: "/operador/homeOp/findRoteOp",
+                      pathname: endRoutePath,
                       params: {
                         data: JSON.stringify(filteredData),
                         crData: JSON.stringify(dataOperadorwhitCR.crData[0]),

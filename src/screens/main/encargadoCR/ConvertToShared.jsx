@@ -22,8 +22,8 @@ import { extractNumRuta } from "../../../utils/textUtils";
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import UsersList from "../../../components/common/UsersList";
+import { postConvertSharedRoute } from "../../../services/encargadoCrServices/registrationRouteService";
 import { useUserToAddToSharedRouteStore } from "../../../store/userStore";
-
 const { width, height } = Dimensions.get("window");
 
 const ConvertToShared = () => {
@@ -378,10 +378,9 @@ const ConvertToShared = () => {
 
   const toSharedRoute = async () => {
     try {
-      //const response = await postConvertSharedRoute(newOperador);
-      //console.log("Ruta compartida creada con éxito:", response);
-      //router.replace("/encargadoCR/home/Index");
-      console.log("Datos de la ruta compartida:", newOperador);
+      const response = await postConvertSharedRoute(newOperador);
+      console.log("Ruta compartida creada con éxito:", response);
+      router.replace("/encargadoCR/home/Index");
     } catch (error) {
       console.error("Error al convertir a ruta compartida:", error);
     }

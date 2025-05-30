@@ -1,15 +1,23 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import DailySummaryLog from "../../../src/screens/main/socio/DailySummaryLog";
 
 const AddReports = () => {
-  return <DailySummaryLog></DailySummaryLog>;
+  return (
+    <>
+      <View style={styles.container}>
+        <DailySummaryLog
+          startRoutePath={"/encargadoCR/addReports/StartrouteCR"}
+          endRoutePath={"/encargadoCR/addReports/EndRouteCR"}
+        ></DailySummaryLog>
+      </View>
+    </>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    marginTop: 33,
     backgroundColor: "white",
   },
   title: {

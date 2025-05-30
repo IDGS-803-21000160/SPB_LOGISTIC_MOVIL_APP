@@ -11,7 +11,10 @@ export default function HomeScreen() {
   return (
     <>
       <SafeAreaProvider style={styles.container}>
-        <DailySummaryLog></DailySummaryLog>
+        <DailySummaryLog
+          startRoutePath={"/operador/homeOp/startRouteOp"}
+          endRoutePath={"/operador/homeOp/endRouteOp"}
+        ></DailySummaryLog>
       </SafeAreaProvider>
     </>
   );
