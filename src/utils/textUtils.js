@@ -37,10 +37,10 @@ export const getCiudadFromCR = (cr) => {
       return "Monterrey";
     case "QRO":
       return "Querétaro";
-    case "MTP":
+    case "TLC":
       return "Metepec";
     default:
-      return "Ciudad desconocida";
+      return "Desconocida";
   }
 };
 

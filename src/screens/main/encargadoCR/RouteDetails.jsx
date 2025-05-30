@@ -24,6 +24,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import Spinner from "../../../components/common/Spinner";
 import UsersList from "../../../components/common/UsersList";
+import getCityName from "../../../utils/crName";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting";
 const { width, height } = Dimensions.get("window");
 
@@ -342,8 +343,8 @@ const RouteDetails = ({ idRute }) => {
                   <View className="" style={{ width: width - 100 }}>
                     <View className="flex ">
                       <Text
-                        className="font-extrabold text-black text-4xl mx-2 mr-2"
-                        style={{ color: "white" }}
+                        className="font-extrabold text-black mx-2 mr-2"
+                        style={{ color: "white", fontSize: 25 }}
                       >
                         {dataSummary[0]?.numero_ruta}
                       </Text>
@@ -364,7 +365,7 @@ const RouteDetails = ({ idRute }) => {
                       <>
                         <View className="mt-4">
                           <Text
-                            className="font-semibold text-black text-2xl mx-2 mr-2 mt-1"
+                            className="font-semibold text-black text-xl mx-2 mr-2 mt-1"
                             style={{ color: "white" }}
                           >
                             Operador
@@ -372,7 +373,7 @@ const RouteDetails = ({ idRute }) => {
                         </View>
                         <View>
                           <Text
-                            className="font-normal text-black text-xl mx-2 mr-2 mt-1"
+                            className="font-normal text-black text-md pr-28 mx-2 mr-2 mt-1"
                             style={{ color: "white" }}
                           >
                             {dataSummary[0]?.nombre}
@@ -384,8 +385,10 @@ const RouteDetails = ({ idRute }) => {
                 </View>
                 {/*Resumen Ruta, CR y Categoria de la ruta*/}
                 <View className="flex flex-row mx-4 mt-5">
-                  <View className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                    <Text className="text-green-800">León</Text>
+                  <View className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    <Text className="text-blue-800">
+                      {getCityName(dataSummary[0]?.numero_ruta)}
+                    </Text>
                   </View>
                   <View className="bg-red-100  text-red-800  text-xs font-medium px-2.5 py-0.5 rounded-full ml-3">
                     <Text className="text-red-800 ">

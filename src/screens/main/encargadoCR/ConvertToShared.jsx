@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  Alert,
   Dimensions,
   Keyboard,
   KeyboardAvoidingView,
@@ -114,6 +115,14 @@ const ConvertToShared = () => {
   useEffect(() => {}, [newOperador]);
 
   const handleAddSharedUser = () => {
+    if (remisionesAsignadas > lpsAsignados) {
+      Alert.alert(
+        "Valores inválidos",
+        "El número de remisiones asignadas no puede ser mayor que el número de LPS asignados."
+      );
+      return;
+    }
+
     if (selectedUser) {
       const existe = usuariosCompartidos.some(
         (u) => u.id_persona === selectedUser.id_persona
@@ -377,6 +386,14 @@ const ConvertToShared = () => {
   };
 
   const toSharedRoute = async () => {
+    if (remisionesTotales > lpsTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        "El número total de remisiones no puede ser mayor que el total de LPS."
+      );
+      return;
+    }
+
     try {
       const response = await postConvertSharedRoute(newOperador);
       console.log("Ruta compartida creada con éxito:", response);
