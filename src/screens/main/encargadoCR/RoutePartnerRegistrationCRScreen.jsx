@@ -3,7 +3,7 @@ import Stepper from "@/src/components/common/Stepper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -305,8 +305,6 @@ export default function RoutePartnerRegistrationCR() {
       console.error("Error posting route:", error);
     }
   };
-
-  const cleanAfterNavigate = () => {};
 
   const form = () => {
     return (

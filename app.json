@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "my-app-spb-logistic",
+    "name": "Spb Logistic",
     "slug": "my-app-spb-logistic",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/SPB_Camion_Logo_Editable.png",
     "scheme": "myappspblogistic",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,8 +14,8 @@
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/SPB_Camion_Logo_Editable.png",
+        "backgroundColor": "white"
       },
       "edgeToEdgeEnabled": true
     },
@@ -32,7 +32,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "white"
         }
       ]
     ],
