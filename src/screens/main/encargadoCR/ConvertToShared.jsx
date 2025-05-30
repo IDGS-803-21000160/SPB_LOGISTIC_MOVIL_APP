@@ -1,34 +1,28 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from "react-native";
-import { Dimensions } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { useContext } from "react";
-import User from "../../../components/common/User";
-import { Svg, Path, Use } from "react-native-svg";
+import {
+  Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+
+import { Path, Svg } from "react-native-svg";
 import BadgeGroup from "../../../components/common/BadgeGroup";
-import { capitalizeEachWord } from "../../../utils/textUtils";
+import User from "../../../components/common/User";
+import { extractNumRuta } from "../../../utils/textUtils";
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
-import { extractNumRuta } from "../../../utils/textUtils";
-import { useUserToAddToSharedRouteStore } from "../../../store/userStore";
 import UsersList from "../../../components/common/UsersList";
-import { postConvertSharedRoute } from "../../../services/encargadoCrServices/registrationRouteService";
+import { useUserToAddToSharedRouteStore } from "../../../store/userStore";
 
 const { width, height } = Dimensions.get("window");
 
@@ -75,10 +69,9 @@ const ConvertToShared = () => {
   const [zonaOperadorActual, setZonaOperadorActual] = useState("");
   const [lpsAsignadosActual, setLpsAsignadosActual] = useState(0);
   const [remisionesAsignadasActual, setRemisionesAsignadasActual] = useState(0);
+  const [idRuta, setIdRuta] = useState(0);
 
   useEffect(() => {
-    //console.log("Data de la ruta:", dataRoute);
-    //console.log("id general ruta", dataRoute[0].id_ruta);
     console.log("Usuario desde lista para add to shared route:", selectedUser);
 
     setLpsTotales(dataRoute[0].lps_totales);
@@ -90,6 +83,7 @@ const ConvertToShared = () => {
     setNumRuta(dataRoute[0].numero_ruta);
     setCategoriaRuta(dataRoute[0].categoria_ruta);
     setNombre(selectedUser?.nombre);
+    setIdRuta(dataRoute[0]?.id_ruta);
 
     //Asignacion de datos del operador actual
     setIdRutaOperador(dataRoute[0].id_ruta_operador);
@@ -99,7 +93,15 @@ const ConvertToShared = () => {
   }, []);
 
   useEffect(() => {
+    console.log("Selected User 😍:", selectedUser);
+
     setNombre(selectedUser?.nombre);
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      setModalAddUsers(true);
+    }
   }, [selectedUser]);
 
   const clearVariables = () => {
@@ -132,8 +134,8 @@ const ConvertToShared = () => {
           remisionesTotales: Number(remisionesTotales),
           idRutaOperador: idRutaOperador,
           zonaRutaOperadorActual: zonaOperadorActual,
-          lpsRutaOperadorActual: Number(lpsAsignadosActual),
-          remisionesRutaOperadorActual: Number(remisionesAsignadasActual),
+          lpsRutaOperadorActual: Number(numeroLps),
+          remisionesRutaOperadorActual: Number(remisiones),
           operadoresData: [
             ...prev.operadoresData,
             {
@@ -152,6 +154,27 @@ const ConvertToShared = () => {
     }
     setModalAddUsers(false);
   };
+
+  useEffect(() => {
+    setNewOperador((prev) => ({
+      ...prev,
+      idRuta: idRuta,
+      lpsTotales: Number(lpsTotales),
+      remisionesTotales: Number(remisionesTotales),
+      idRutaOperador: idRutaOperador,
+      zonaRutaOperadorActual: zona,
+      lpsRutaOperadorActual: Number(numeroLps),
+      remisionesRutaOperadorActual: Number(remisiones),
+    }));
+  }, [
+    idRuta,
+    lpsTotales,
+    remisionesTotales,
+    idRutaOperador,
+    zona,
+    numeroLps,
+    remisiones,
+  ]);
 
   const headerToScreen = () => {
     return (
@@ -333,14 +356,16 @@ const ConvertToShared = () => {
         </TouchableOpacity>
         <View>
           <UsersList dataRoutes={usuariosCompartidos}></UsersList>
-          <TouchableOpacity
-            style={styles.buttonAddMore}
-            onPress={() => toSharedRoute()}
-          >
-            <View style={styles.contentAddMore}>
-              <Text style={styles.buttonTextAddMore}>Convertir</Text>
-            </View>
-          </TouchableOpacity>
+          {usuariosCompartidos.length > 0 && (
+            <TouchableOpacity
+              style={styles.buttonAddMore}
+              onPress={() => toSharedRoute()}
+            >
+              <View style={styles.contentAddMore}>
+                <Text style={styles.buttonTextAddMore}>Convertir</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -353,9 +378,10 @@ const ConvertToShared = () => {
 
   const toSharedRoute = async () => {
     try {
-      const response = await postConvertSharedRoute(newOperador);
-      console.log("Ruta compartida creada con éxito:", response);
-      router.replace("/encargadoCR/home/Index");
+      //const response = await postConvertSharedRoute(newOperador);
+      //console.log("Ruta compartida creada con éxito:", response);
+      //router.replace("/encargadoCR/home/Index");
+      console.log("Datos de la ruta compartida:", newOperador);
     } catch (error) {
       console.error("Error al convertir a ruta compartida:", error);
     }
