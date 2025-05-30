@@ -17,7 +17,8 @@
         "foregroundImage": "./assets/images/SPB_Camion_Logo_Editable.png",
         "backgroundColor": "white"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ivanbl27.myappspblogistic"
     },
     "web": {
       "bundler": "metro",
@@ -40,7 +41,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "http://192.168.0.169:3307/api"
+      "apiUrl": "http://192.168.0.169:3307/api",
+      "router": {},
+      "eas": {
+        "projectId": "be498ee2-a5d2-4742-bf0a-4a0f6fba1d9a"
+      }
     }
   }
 }
