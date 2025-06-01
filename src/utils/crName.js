@@ -1,6 +1,6 @@
 function getCityName(code = "") {
   // code siempre es string, aunque recibas undefined
-  if (code.includes("LEN")) {
+  if (code.includes("LN")) {
     return "León";
   } else if (code.includes("MTY")) {
     return "Monterrey";

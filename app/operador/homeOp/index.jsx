@@ -13,7 +13,7 @@ export default function HomeScreen() {
       <SafeAreaProvider style={styles.container}>
         <DailySummaryLog
           startRoutePath={"/operador/homeOp/startRouteOp"}
-          endRoutePath={"/operador/homeOp/endRouteOp"}
+          endRoutePath={"/operador/homeOp/findRoteOp"}
         ></DailySummaryLog>
       </SafeAreaProvider>
     </>
