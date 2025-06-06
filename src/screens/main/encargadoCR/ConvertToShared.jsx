@@ -23,7 +23,6 @@ import { extractNumRuta } from "../../../utils/textUtils";
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import UsersList from "../../../components/common/UsersList";
-import { postConvertSharedRoute } from "../../../services/encargadoCrServices/registrationRouteService";
 import { useUserToAddToSharedRouteStore } from "../../../store/userStore";
 const { width, height } = Dimensions.get("window");
 
@@ -339,6 +338,13 @@ const ConvertToShared = () => {
     return <View className="mx-4 mt-1"></View>;
   };
 
+  // Función que borrará un usuario por índice
+  const handleDelete = (indexAEliminar) => {
+    setUsuariosCompartidos((prev) =>
+      prev.filter((_, i) => i !== indexAEliminar)
+    );
+  };
+
   const addAndListOperators = () => {
     return (
       <View className="mx-6 mt-1">
@@ -364,7 +370,10 @@ const ConvertToShared = () => {
           </View>
         </TouchableOpacity>
         <View>
-          <UsersList dataRoutes={usuariosCompartidos}></UsersList>
+          <UsersList
+            dataRoutes={usuariosCompartidos}
+            onDelete={handleDelete}
+          ></UsersList>
           {usuariosCompartidos.length > 0 && (
             <TouchableOpacity
               style={styles.buttonAddMore}
@@ -394,10 +403,68 @@ const ConvertToShared = () => {
       return;
     }
 
+    if (remisiones > numeroLps) {
+      Alert.alert(
+        "Valores inválidos",
+        "El número de remisiones asignadas al operador actual no puede ser mayor que el número de LPS asignados."
+      );
+      return;
+    }
+
+    // 3. Sumar los lps_asignados y remisiones_asignadas de usuariosCompartidos
+    const sumaLpsCompartidos = usuariosCompartidos.reduce(
+      (acc, usuario) => acc + usuario.lps_asignados,
+      0
+    );
+    const sumaRemisionesCompartidas = usuariosCompartidos.reduce(
+      (acc, usuario) => acc + usuario.remisiones_asignadas,
+      0
+    );
+
+    // 4. Agregar los valores del operador actual (numeroLps y remisiones)
+    const totalLpsAsignados = sumaLpsCompartidos + Number(numeroLps);
+    const totalRemisionesAsignadas =
+      sumaRemisionesCompartidas + Number(remisiones);
+
+    // 5. Validar que la suma de LPS no exceda lpsTotales
+    if (totalLpsAsignados > lpsTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        `La suma total de LPS asignados (${totalLpsAsignados}) no puede ser mayor que ${lpsTotales}.`
+      );
+      return;
+    }
+
+    // 6. Validar que la suma de remisiones no exceda remisionesTotales
+    if (totalRemisionesAsignadas > remisionesTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        `La suma total de remisiones asignadas (${totalRemisionesAsignadas}) no puede ser mayor que ${remisionesTotales}.`
+      );
+      return;
+    }
+
+    if (totalRemisionesAsignadas < remisionesTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        "La suma total de remisiones asignadas no puede ser menor que el total de remisiones disponibles."
+      );
+      return;
+    }
+
+    if (totalLpsAsignados < lpsTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        "La suma total de LPS asignados no puede ser menor que el total de LPS establecidos."
+      );
+      return;
+    }
+
     try {
-      const response = await postConvertSharedRoute(newOperador);
-      console.log("Ruta compartida creada con éxito:", response);
-      router.replace("/encargadoCR/home/Index");
+      //const response = await postConvertSharedRoute(newOperador);
+      //console.log("Ruta compartida creada con éxito:", response);
+      //router.replace("/encargadoCR/home/Index");
+      console.log("Hola señor");
     } catch (error) {
       console.error("Error al convertir a ruta compartida:", error);
     }

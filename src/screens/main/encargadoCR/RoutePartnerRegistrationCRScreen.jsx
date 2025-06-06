@@ -22,9 +22,10 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
+import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
+
 import { Path, Svg } from "react-native-svg";
 import WarningAlert from "../../../components/common/informativeAlerts/warningAlert";
-import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
 import { useUserStore } from "../../../store/userStore";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting";
 import styles from "./styles/RegistrationCR";
@@ -197,12 +198,13 @@ export default function RoutePartnerRegistrationCR() {
     setRegistros((prevRegistros) => {
       const nuevosRegistros = [...prevRegistros, datos];
       // Actualizamos el resumen: guardamos el nombre del operador, la ruta, lps, remisiones y la posición (índice)
+      const numRutaFormateada = String(numRuta).padStart(2, "0");
       setSummaryRoutes((prevSummary) => [
         ...prevSummary,
         {
           index: nuevosRegistros.length - 1,
           nameOperador: nameOperador,
-          numRuta: numRuta,
+          numRuta: numRutaFormateada,
           lps: Number(numLPS),
           remisiones: Number(remisiones),
           tipo: "unitaria",
@@ -297,10 +299,42 @@ export default function RoutePartnerRegistrationCR() {
   };
 
   const postServiceToAddRoute = async () => {
+    // 1. Validar que no haya números de ruta repetidos
+    const rutasSet = new Set();
+    for (const reg of registros) {
+      const ruta = reg.numero_ruta;
+      if (rutasSet.has(ruta)) {
+        Alert.alert("Rutas duplicadas", "No puede haber dos rutas iguales", [
+          { text: "OK" },
+        ]);
+
+        return;
+      }
+      rutasSet.add(ruta);
+    }
+
+    // 2. Validar que no haya id_operador repetidos
+    const operadoresSet = new Set();
+    for (const reg of registros) {
+      for (const op of reg.operadores) {
+        const idOp = op.id_operador;
+        if (operadoresSet.has(idOp)) {
+          Alert.alert(
+            "Operadores duplicados",
+            "Por favor, un operador no puede estar asignado a mas de una ruta",
+            [{ text: "OK" }]
+          );
+          return;
+        }
+        operadoresSet.add(idOp);
+      }
+    }
+
     try {
       const response = await postAddRoute(registros);
       console.log("Respuesta de la API:", response);
       nextStep();
+      console.log("Datos a enviar ploñ:", registros[0].operadores);
     } catch (error) {
       console.error("Error posting route:", error);
     }
