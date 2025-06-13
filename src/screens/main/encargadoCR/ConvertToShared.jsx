@@ -23,7 +23,7 @@ import { extractNumRuta } from "../../../utils/textUtils";
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import UsersList from "../../../components/common/UsersList";
-import { postConvertSharedRoute } from "../../../services/encargadoCrServices/updateServices";
+import { postConvertSharedRoute } from "../../../services/encargadoCrServices/registrationRouteService";
 import { useUserToAddToSharedRouteStore } from "../../../store/userStore";
 const { width, height } = Dimensions.get("window");
 
@@ -374,6 +374,7 @@ const ConvertToShared = () => {
           <UsersList
             dataRoutes={usuariosCompartidos}
             onDelete={handleDelete}
+            showButton={true}
           ></UsersList>
           {usuariosCompartidos.length > 0 && (
             <TouchableOpacity

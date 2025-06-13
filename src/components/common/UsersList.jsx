@@ -2,7 +2,7 @@
 import { Text, TouchableOpacity, View } from "react-native";
 import { getInitials } from "../../utils/textUtils";
 
-const UsersList = ({ dataRoutes, onDelete }) => {
+const UsersList = ({ dataRoutes, onDelete, showButton = false }) => {
   return (
     <View className="mx-4 mt-1">
       <View className="mt-4">
@@ -48,13 +48,15 @@ const UsersList = ({ dataRoutes, onDelete }) => {
             </View>
 
             {/* --- Botón de BORRAR (texto en rojo) --- */}
-            <View className="flex-row justify-end mt-1">
-              <TouchableOpacity onPress={() => onDelete(index)}>
-                <Text style={{ color: "red", fontWeight: "700" }}>
-                  Quitar Operador
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {showButton && (
+              <View className="flex-row justify-end mt-1">
+                <TouchableOpacity onPress={() => onDelete(index)}>
+                  <Text style={{ color: "red", fontWeight: "700" }}>
+                    Quitar Operador
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         ))}
 
