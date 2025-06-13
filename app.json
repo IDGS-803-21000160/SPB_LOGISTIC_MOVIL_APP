@@ -11,6 +11,14 @@
     "ios": {
       "supportsTablet": true
     },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
@@ -18,7 +26,8 @@
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.ivanbl27.myappspblogistic"
+      "package": "com.ivanbl27.myappspblogistic",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
