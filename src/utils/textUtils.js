@@ -28,6 +28,7 @@ export const getCiudadFromCR = (cr) => {
 
   switch (prefix) {
     case "LN":
+    case "LEN":
       return "León";
     case "GD":
     case "GDL":

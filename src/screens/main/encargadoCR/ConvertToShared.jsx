@@ -19,7 +19,7 @@ import {
 import { Path, Svg } from "react-native-svg";
 import BadgeGroup from "../../../components/common/BadgeGroup";
 import User from "../../../components/common/User";
-import { extractNumRuta } from "../../../utils/textUtils";
+import { extractNumRuta, getCiudadFromCR } from "../../../utils/textUtils";
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import UsersList from "../../../components/common/UsersList";
@@ -228,7 +228,7 @@ const ConvertToShared = () => {
         <View className="mt-2">
           <BadgeGroup
             items={[
-              { label: "León", color: "green" },
+              { label: getCiudadFromCR(numRuta), color: "blue" },
               { label: categoriaRuta ?? "", color: "red" },
             ]}
           />
@@ -520,14 +520,21 @@ const ConvertToShared = () => {
                         Operador
                       </Text>
                       <View className="flex-row items-center w-full  ">
-                        <TextInput
-                          className="bg-white border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
-                          editable={false}
-                          style={styles.input}
-                          placeholder="Ingresa el nombre del socio"
-                          value={nombre}
-                          onChangeText={(text) => setNombre(text)}
-                        />
+                        <TouchableOpacity
+                          className=" text-gray-900 text-md rounded-full h-14 flex-1 "
+                          onPress={() => {
+                            navigateToUserList();
+                          }}
+                        >
+                          <TextInput
+                            className="bg-white border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
+                            editable={false}
+                            style={styles.input}
+                            placeholder="Ingresa el nombre del socio"
+                            value={nombre}
+                            onChangeText={(text) => setNombre(text)}
+                          />
+                        </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.buttonSearch}
                           className="p-2.5 ml-2 text-sm font-medium text-white  rounded-lg border border-red-400 "

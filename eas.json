@@ -4,6 +4,10 @@
       "env": {
         "NODE_ENV": "production"
       },
+      "development": {
+        "developmentClient": true,
+        "distribution": "internal"
+      },
       "android": {
         "buildType": "apk"
       }

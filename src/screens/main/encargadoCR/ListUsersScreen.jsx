@@ -18,6 +18,7 @@ const ListUsers = ({ handleSelectUser }) => {
     try {
       const responseOperadores = await getOperadores();
       setOperadores(responseOperadores);
+      console.log("Operadores fetched successfully:", responseOperadores);
     } catch (error) {
       console.error("Error fetching operadores:", error);
     }
@@ -130,7 +131,7 @@ const ListUsers = ({ handleSelectUser }) => {
                         {socio.nombre}
                       </Text>
                       <Text className="text-sm text-gray-500">
-                        {socio.curp}
+                        {socio.tipo}
                       </Text>
                     </View>
                   </View>

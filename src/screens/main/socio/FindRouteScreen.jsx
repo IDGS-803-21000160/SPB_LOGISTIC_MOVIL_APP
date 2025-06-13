@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -235,18 +235,6 @@ const CierreRutaForm = () => {
                 placeholder="Ej. 50"
               />
             </View>
-
-            <View style={styles.field}>
-              <Text style={styles.label}>LPS Fallidos</Text>
-              <TextInput
-                style={styles.input}
-                value={lpsFallidos}
-                onChangeText={setLpsFallidos}
-                keyboardType="numeric"
-                placeholder="Ej. 3"
-              />
-            </View>
-
             <View style={styles.field}>
               <Text style={styles.label}>Remisiones Finales</Text>
               <TextInput
@@ -257,6 +245,20 @@ const CierreRutaForm = () => {
                 placeholder="Ej. 20"
               />
             </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>LPS Fallidos</Text>
+              <TextInput
+                style={styles.input}
+                value={lpsFallidos}
+                onChangeText={setLpsFallidos}
+                keyboardType="numeric"
+                placeholder="Ej. 3"
+              />
+            </View>
+            <View className="bg-red-100 h-0.5 mb-4"></View>
+            <Text className="text-sm text-gray-500 my-2">
+              En relacion a los fallidos
+            </Text>
 
             <View style={styles.fieldRow}>
               <View style={styles.fieldSmall}>
@@ -278,6 +280,7 @@ const CierreRutaForm = () => {
                 />
               </View>
             </View>
+            <View className="bg-red-100 h-0.5 mb-4"></View>
 
             <View style={styles.field}>
               <Text style={styles.label}>Captura Simplieroute Final</Text>
