@@ -1,5 +1,6 @@
 import LoginPage from "@/src/screens/auth/LoginPage";
 import * as Updates from "expo-updates";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import "../global.css";
 
