@@ -11,14 +11,7 @@
     "ios": {
       "supportsTablet": true
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
-    },
+    "runtimeVersion": "1.0.0",
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
@@ -35,6 +28,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      ["expo-updates", { "runtimeVersion": "1.0.0" }],
       "expo-router",
       [
         "expo-splash-screen",
