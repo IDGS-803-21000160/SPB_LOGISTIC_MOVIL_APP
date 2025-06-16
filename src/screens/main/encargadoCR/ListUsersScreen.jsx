@@ -18,7 +18,7 @@ const ListUsers = ({ handleSelectUser }) => {
     try {
       const responseOperadores = await getOperadores();
       setOperadores(responseOperadores);
-      console.log("Operadores fetched successfully:", responseOperadores);
+      //console.log("Operadores fetched successfully:", responseOperadores);
     } catch (error) {
       console.error("Error fetching operadores:", error);
     }

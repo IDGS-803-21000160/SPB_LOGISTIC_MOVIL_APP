@@ -22,10 +22,10 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
 
 import { Path, Svg } from "react-native-svg";
 import WarningAlert from "../../../components/common/informativeAlerts/warningAlert";
+import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
 import { useUserStore } from "../../../store/userStore";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting";
 import styles from "./styles/RegistrationCR";
@@ -235,6 +235,7 @@ export default function RoutePartnerRegistrationCR() {
     setTipoRuta("");
     setNumTotalLPS("");
     setNumTotalRemisiones("");
+    setOperadoresTemp([]);
     setRegistrosCompartidos({
       numero_ruta: "",
       tipo_ruta: "Compartida",
@@ -305,9 +306,13 @@ export default function RoutePartnerRegistrationCR() {
       const ruta = reg.numero_ruta;
       if (rutasSet.has(ruta)) {
         Alert.alert("Rutas duplicadas", "No puede haber dos rutas iguales", [
-          { text: "OK" },
+          {
+            text: "OK",
+            onPress: () => {
+              resetForm(); // 🔁 Aquí reseteamos todo
+            },
+          },
         ]);
-
         return;
       }
       rutasSet.add(ruta);
@@ -321,8 +326,15 @@ export default function RoutePartnerRegistrationCR() {
         if (operadoresSet.has(idOp)) {
           Alert.alert(
             "Operadores duplicados",
-            "Por favor, un operador no puede estar asignado a mas de una ruta",
-            [{ text: "OK" }]
+            "Por favor, un operador no puede estar asignado a más de una ruta",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  resetForm(); // 🔁 También aquí
+                },
+              },
+            ]
           );
           return;
         }
@@ -332,9 +344,11 @@ export default function RoutePartnerRegistrationCR() {
 
     try {
       const response = await postAddRoute(registros);
-      console.log("Respuesta de la API:", response);
-      nextStep();
-      console.log("Datos a enviar ploñ:", registros[0].operadores);
+      if (response) {
+        nextStep();
+      }
+      console.log("Reguistros Compartidos 🥸: ", registrosCompartidos);
+      console.log("Datos a enviar popo:", registros);
     } catch (error) {
       console.error("Error posting route:", error);
     }
@@ -447,12 +461,15 @@ export default function RoutePartnerRegistrationCR() {
           </View>
           <View>
             <TouchableOpacity
+              disabled={summaryRoutes.length === 0}
               style={{
-                backgroundColor: "#D93958",
+                backgroundColor:
+                  summaryRoutes.length === 0 ? "#D3D3D3" : "#D93958",
                 padding: 16,
                 borderRadius: 10,
                 marginHorizontal: 16,
                 marginTop: 16,
+                opacity: summaryRoutes.length === 0 ? 0.6 : 1,
               }}
               onPress={() => postServiceToAddRoute()}
             >
@@ -1004,6 +1021,15 @@ export default function RoutePartnerRegistrationCR() {
       return;
     }
 
+    if (Number(numTotalRemisiones) > Number(numTotalLPS)) {
+      Alert.alert(
+        "Error en los datos",
+        "El número de remisiones totales no puede ser mayor que el número total de LPS.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     if (registrosCompartidos.operadores.length === 0) {
       setRegistrosCompartidos({
         numero_ruta: numRuta,
@@ -1053,9 +1079,40 @@ export default function RoutePartnerRegistrationCR() {
   };
 
   const addOperadores = () => {
+    // Sumar LPS y Remisiones asignados
+    const sumaLpsAsignados = registrosCompartidos.operadores.reduce(
+      (acc, operador) => acc + Number(operador.lps_asignados),
+      0
+    );
+    const sumaRemisionesAsignadas = registrosCompartidos.operadores.reduce(
+      (acc, operador) => acc + Number(operador.remisiones_asignadas),
+      0
+    );
+
+    // Validar contra los totales
+    if (
+      sumaLpsAsignados !== registrosCompartidos.lps_totales ||
+      sumaRemisionesAsignadas !== registrosCompartidos.remisiones_totales
+    ) {
+      alert(
+        `Error: La suma de LPS o Remisiones asignadas no coincide con los totales.\n` +
+          `LPS asignados: ${sumaLpsAsignados}, esperados: ${registrosCompartidos.lps_totales}\n` +
+          `Remisiones asignadas: ${sumaRemisionesAsignadas}, esperados: ${registrosCompartidos.remisiones_totales}`
+      );
+
+      // Limpiar operadores
+      registrosCompartidos.operadores = [];
+      setOperadoresTemp([]);
+      // Si registrosCompartidos está en estado, debes actualizarlo:
+      setRegistrosCompartidos({ ...registrosCompartidos });
+
+      return;
+    }
+
+    // Continuar con el guardado si todo es válido
     setRegistros((prev) => {
       const nuevosRegistros = [...prev, registrosCompartidos];
-      // Actualizamos el resumen para la ruta compartida
+
       setSummaryRoutes((prevSummary) => [
         ...prevSummary,
         {
@@ -1065,13 +1122,16 @@ export default function RoutePartnerRegistrationCR() {
           lps: Number(numTotalLPS),
           remisiones: Number(numTotalRemisiones),
           tipo: "compartida",
-          socios: registrosCompartidos.operadores, // Arreglo con los socios que comparten la ruta
+          socios: registrosCompartidos.operadores,
         },
       ]);
+
       return nuevosRegistros;
     });
+
     clearSharedForm();
   };
+
   const nextStep = () => {
     fadeAnim.setValue(0);
     setStep((prevStep) => prevStep + 1);
@@ -1098,8 +1158,12 @@ export default function RoutePartnerRegistrationCR() {
             onClose={() => setToastVisible(false)}
           />
         ) : null}
-
-        <Stepper currentStep={step} />
+        <Stepper
+          currentStep={step}
+          onStepPress={(stepIndex) => {
+            setStep(stepIndex);
+          }}
+        />
       </View>
       {modalToAddSharedUsers()}
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>

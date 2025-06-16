@@ -264,10 +264,12 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
   }, [filteredData]);
 
   const assignmentInformation = () => {
+    // Renderiza la información de asignación y botones de acción
     return (
       <>
         <SafeAreaView style={{ flex: 1 }}>
           <ScrollView>
+            {/* Encabezado con logo y nombre del CR */}
             <View style={styles.containerAssignment}>
               <View className="mx-4 mt-4 flex flex-row justify-between">
                 <Image
@@ -291,6 +293,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                   </Text>
                 </View>
               </View>
+              {/* Mensaje de bienvenida si hay ruta asignada */}
               {filteredData[0]?.length >= 1 &&
               (dataRoute[0]?.estatus_ruta == 1 ||
                 dataRoute[0]?.estatus_ruta == 2) ? (
@@ -309,6 +312,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                 <Text></Text>
               )}
             </View>
+            {/* Tarjeta con detalles de la ruta asignada */}
             <View style={[styles.card, styles.cardOverlay]}>
               {filteredData[0]?.length &&
               (dataRoute[0]?.estatus_ruta == 1 ||
@@ -318,6 +322,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                     CR {dataOperadorwhitCR?.crData[0]?.nombre_corto}
                   </Text>
 
+                  {/* Detalle: Ruta asignada */}
                   <View className="mt-3 flex flex-row items-center">
                     {TruckIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -331,6 +336,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                     </Text>
                   </View>
 
+                  {/* Detalle: LPS asignadas */}
                   <View className="mt-2 flex flex-row items-center">
                     {BoxIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -343,6 +349,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                       {dataRoute[0]?.lps_asignados}
                     </Text>
                   </View>
+                  {/* Detalle: Remisiones */}
                   <View className="mt-2 flex flex-row items-center">
                     {HomeIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -355,6 +362,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                       {dataRoute[0]?.remisiones_asignadas}
                     </Text>
                   </View>
+                  {/* Detalle: Tipo de ruta */}
                   <View className="mt-2 flex flex-row items-center">
                     {LocationIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -367,6 +375,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                       {dataRoute[0]?.categoria_ruta}
                     </Text>
                   </View>
+                  {/* Detalle: Zona */}
                   <View className="mt-2 flex flex-row items-center">
                     {MyThirdIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -379,6 +388,8 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                       {dataRoute[0]?.zona}
                     </Text>
                   </View>
+
+                  {/* Botón para ver detalles 
                   <View>
                     <TouchableOpacity
                       className="mt-4"
@@ -391,9 +402,10 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                         Ver Detalles
                       </Text>
                     </TouchableOpacity>
-                  </View>
+                  </View>*/}
                 </>
               ) : (
+                // Mensaje si no hay rutas asignadas
                 <View className="flex aling-center items-center justify-center ">
                   <Text className="font-bold text-2xl text-center mt-20">
                     No hay ruta asignadas
@@ -401,7 +413,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                 </View>
               )}
             </View>
-            {/*Boton de iniicar rutas*/}
+            {/* Botones para iniciar/finalizar ruta */}
             {filteredData[0]?.length >= 1 && (
               <View className="flex flex-col items-center mt-8 space-y-4">
                 {/* Botón Iniciar Ruta */}

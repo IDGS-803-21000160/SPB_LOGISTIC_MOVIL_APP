@@ -1,29 +1,40 @@
 // Stepper.js
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-export default function Stepper({ currentStep }) {
+export default function Stepper({ currentStep, onStepPress }) {
+  const isDisabled = currentStep === 2;
+
   return (
     <View style={styles.container}>
-      {/* Línea de fondo que conecta los pasos */}
       <View style={styles.lineBackground} />
 
-      {/* Contenedor de los pasos */}
       <View style={styles.stepContainer}>
         {/* Paso 1 */}
-        <View
-          style={[styles.circle, currentStep >= 0 && styles.circleCompleted]}
+        <TouchableOpacity
+          onPress={() => onStepPress?.(0)}
+          disabled={isDisabled}
+          style={{ opacity: isDisabled ? 0.5 : 1 }}
         >
-          <DocumentIcon color={currentStep >= 0 ? "white" : "#6B7280"} />
-        </View>
+          <View
+            style={[styles.circle, currentStep >= 0 && styles.circleCompleted]}
+          >
+            <DocumentIcon color={currentStep >= 0 ? "white" : "#6B7280"} />
+          </View>
+        </TouchableOpacity>
         {/* Paso 2 */}
-        <View
-          style={[styles.circle, currentStep >= 1 && styles.circleCompleted]}
+        <TouchableOpacity
+          onPress={() => onStepPress?.(1)}
+          disabled={isDisabled}
+          style={{ opacity: isDisabled ? 0.5 : 1 }}
         >
-          <UserIcon color={currentStep >= 1 ? "white" : "#6B7280"} />
-        </View>
-        {/* Paso 3 */}
+          <View
+            style={[styles.circle, currentStep >= 1 && styles.circleCompleted]}
+          >
+            <UserIcon color={currentStep >= 1 ? "white" : "#6B7280"} />
+          </View>
+        </TouchableOpacity>
+        {/* Paso 3 (no tocable) */}
         <View
           style={[styles.circle, currentStep >= 2 && styles.circleCompleted]}
         >
