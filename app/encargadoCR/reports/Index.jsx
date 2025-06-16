@@ -1,21 +1,14 @@
-import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons"; // Asegúrate de tener instalado @expo/vector-icons
+import { StyleSheet, Text, View } from "react-native";
 
 const Reports = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Módulo en desarrollo</Text>
-
-      <Image
-        source={require("../../../assets/images/SPB_Camion_Logo_Editable.png")}
-        style={{ width: 150, height: 150, marginBottom: -70 }}
-        resizeMode="contain"
-      />
-      <Image
-        source={require("../../../assets/images/SPB_Letras_Logo_Editable.png")}
-        style={{ width: 300, height: 300 }}
-        resizeMode="contain"
-      />
+      <MaterialIcons name="build" size={60} color="#888" style={styles.icon} />
+      <Text style={styles.text}>Módulo en desarrollo</Text>
+      <Text style={styles.subtext}>
+        Próximamente podrás ver tu historial de reportes aquí.
+      </Text>
     </View>
   );
 };
@@ -27,11 +20,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "white",
   },
-  title: {
-    fontSize: 20,
+  icon: {
     marginBottom: 20,
-    color: "#000",
+  },
+  text: {
+    fontSize: 22,
     fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+    color: "#444",
+  },
+  subtext: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#888",
   },
 });
 
