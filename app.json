@@ -1,22 +1,26 @@
 {
   "expo": {
-    "name": "my-app-spb-logistic",
+    "name": "Spb Logistic",
     "slug": "my-app-spb-logistic",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/SPB_Camion_Logo_Editable_square.png",
     "scheme": "myappspblogistic",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
+    "runtimeVersion": "1.0.0",
     "android": {
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/SPB_Camion_Logo_Editable_square.png",
+        "backgroundColor": "#FFFFFF"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ivanbl27.myappspblogistic",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
@@ -24,6 +28,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      ["expo-updates", { "runtimeVersion": "1.0.0" }],
       "expo-router",
       [
         "expo-splash-screen",
@@ -31,7 +36,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#FFFFFF"
         }
       ]
     ],
@@ -39,7 +44,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "http://192.168.0.169:3307/api"
+      "apiUrl": "http://192.168.0.169:3307/api",
+      "router": {},
+      "eas": {
+        "projectId": "be498ee2-a5d2-4742-bf0a-4a0f6fba1d9a"
+      }
     }
   }
 }

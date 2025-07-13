@@ -11,4 +11,16 @@ const getOperadores = async () => {
   }
 };
 
-export { getOperadores };
+const getRutasCompartidas = async (userId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/users/rutasCompartidas/${userId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching rutas compartidas:", error);
+    throw error;
+  }
+};
+
+export { getOperadores, getRutasCompartidas };

@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   headerText: {
-    paddingTop: 70,
+    paddingTop: 40,
     fontSize: 15,
     fontWeight: "normal",
     marginBottom: 9,
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     padding: 16,
     width: width * 0.9,
     flex: 1,
-    marginTop: -25,
+    marginTop: -50,
   },
   box: {
     width: width * 0.25,
@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 20,
+    marginBottom: 20,
   },
   button: {
     flex: 1,
@@ -142,8 +143,8 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   logo: {
-    width: 350,
-    height: 350,
+    width: 200,
+    height: 200,
     resizeMode: "contain",
   },
   picker: {

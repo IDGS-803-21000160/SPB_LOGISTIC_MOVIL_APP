@@ -1,20 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
-import { SafeAreaView, ScrollView, TouchableOpacity } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useAuth } from "../../../../src/context/AuthContext";
 
-import { getDailySummary } from "../../../services/encargadoCrServices/sumaryService.js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import {
-  getRouteOperador,
   getInfoOperador,
   getInfoOperadorandCR,
+  getRouteOperador,
 } from "../../../services/operadorServices/dataConsultsServices.js";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting.js";
-import { useRouter } from "expo-router";
 
-const DailySummaryLog = () => {
+const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
   const router = useRouter();
 
   const [filteredData, setFilteredData] = useState([]);
@@ -184,7 +190,7 @@ const DailySummaryLog = () => {
     const idPersona = userData.detalles.id_persona;
     const fecha = getFormattedDateMexico();
 
-    console.log("fecha", fecha);
+    console.log("fecha ", userData);
 
     setDataStorage(userData);
     setOperadorId(idPersona);
@@ -193,6 +199,8 @@ const DailySummaryLog = () => {
       const rutas = await getRouteOperador(idPersona, fecha);
       console.log("😀 data Route (antes de setState)", rutas[0] ?? null);
       console.log("🐶 filtered data (antes de setState)", rutas[0]);
+
+      console.log("Operador ID:", idPersona);
 
       setDataRoute(rutas[0] ?? null);
       setFilteredData(rutas);
@@ -205,6 +213,17 @@ const DailySummaryLog = () => {
       console.error("Error en getAuthData:", error);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        if (userData) {
+          await getAuthData();
+        }
+      };
+      fetchData();
+    }, [userData])
+  );
 
   useEffect(() => {
     if (userData) {
@@ -245,10 +264,12 @@ const DailySummaryLog = () => {
   }, [filteredData]);
 
   const assignmentInformation = () => {
+    // Renderiza la información de asignación y botones de acción
     return (
       <>
         <SafeAreaView style={{ flex: 1 }}>
           <ScrollView>
+            {/* Encabezado con logo y nombre del CR */}
             <View style={styles.containerAssignment}>
               <View className="mx-4 mt-4 flex flex-row justify-between">
                 <Image
@@ -260,28 +281,30 @@ const DailySummaryLog = () => {
                     className="font-bold text-white text-md"
                     style={{ color: "white" }}
                   >
-                    Bienvenido
+                    Asignación por el CR
                   </Text>
                   <Text
                     className="font-normal text-white text-sm text-center"
                     style={{ color: "white" }}
                   >
                     {dataStorage
-                      ? dataStorage.detalles.nombre
+                      ? dataOperadorwhitCR?.crData[0]?.nombre
                       : "Usuario no identificado"}
                   </Text>
                 </View>
               </View>
+              {/* Mensaje de bienvenida si hay ruta asignada */}
               {filteredData[0]?.length >= 1 &&
-              dataRoute[0]?.estatus_ruta == 1 ? (
+              (dataRoute[0]?.estatus_ruta == 1 ||
+                dataRoute[0]?.estatus_ruta == 2) ? (
                 <View className="mx-4 mb-4">
                   <Text className="mt-10 font-medium text-white text-lg">
-                    Asignación realizada porel CR
+                    Bienvenido
                   </Text>
                   <View className="flex flex-row items-center mt-2">
                     {CustomIcon()}
                     <Text className="font-semibold text-white text-2xl ml-4">
-                      {dataOperadorwhitCR?.crData[0]?.nombre}
+                      {dataStorage.detalles.nombre}
                     </Text>
                   </View>
                 </View>
@@ -289,14 +312,17 @@ const DailySummaryLog = () => {
                 <Text></Text>
               )}
             </View>
+            {/* Tarjeta con detalles de la ruta asignada */}
             <View style={[styles.card, styles.cardOverlay]}>
               {filteredData[0]?.length &&
-              dataRoute[0]?.estatus_ruta == 1 >= 1 ? (
+              (dataRoute[0]?.estatus_ruta == 1 ||
+                dataRoute[0]?.estatus_ruta == 2) >= 1 ? (
                 <>
                   <Text className="font-extrabold text-gray-500 text-2xl">
                     CR {dataOperadorwhitCR?.crData[0]?.nombre_corto}
                   </Text>
 
+                  {/* Detalle: Ruta asignada */}
                   <View className="mt-3 flex flex-row items-center">
                     {TruckIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -310,6 +336,7 @@ const DailySummaryLog = () => {
                     </Text>
                   </View>
 
+                  {/* Detalle: LPS asignadas */}
                   <View className="mt-2 flex flex-row items-center">
                     {BoxIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -322,6 +349,7 @@ const DailySummaryLog = () => {
                       {dataRoute[0]?.lps_asignados}
                     </Text>
                   </View>
+                  {/* Detalle: Remisiones */}
                   <View className="mt-2 flex flex-row items-center">
                     {HomeIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -334,6 +362,7 @@ const DailySummaryLog = () => {
                       {dataRoute[0]?.remisiones_asignadas}
                     </Text>
                   </View>
+                  {/* Detalle: Tipo de ruta */}
                   <View className="mt-2 flex flex-row items-center">
                     {LocationIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -346,6 +375,7 @@ const DailySummaryLog = () => {
                       {dataRoute[0]?.categoria_ruta}
                     </Text>
                   </View>
+                  {/* Detalle: Zona */}
                   <View className="mt-2 flex flex-row items-center">
                     {MyThirdIcon()}
                     <Text className="font-bold text-black text-lg ml-4">
@@ -358,6 +388,8 @@ const DailySummaryLog = () => {
                       {dataRoute[0]?.zona}
                     </Text>
                   </View>
+
+                  {/* Botón para ver detalles 
                   <View>
                     <TouchableOpacity
                       className="mt-4"
@@ -370,9 +402,10 @@ const DailySummaryLog = () => {
                         Ver Detalles
                       </Text>
                     </TouchableOpacity>
-                  </View>
+                  </View>*/}
                 </>
               ) : (
+                // Mensaje si no hay rutas asignadas
                 <View className="flex aling-center items-center justify-center ">
                   <Text className="font-bold text-2xl text-center mt-20">
                     No hay ruta asignadas
@@ -380,31 +413,59 @@ const DailySummaryLog = () => {
                 </View>
               )}
             </View>
-            {/*Boton de iniicar rutas*/}
-            {filteredData[0]?.length >= 1 && dataRoute[0]?.estatus_ruta == 1 ? (
-              <View>
+            {/* Botones para iniciar/finalizar ruta */}
+            {filteredData[0]?.length >= 1 && (
+              <View className="flex flex-col items-center mt-8 space-y-4">
+                {/* Botón Iniciar Ruta */}
                 <TouchableOpacity
-                  className="flex flex-row items-center justify-center w-1/2  rounded-lg mx-4 p-3 mt-8"
-                  style={{ backgroundColor: "#AC3958" }}
+                  disabled={dataRoute[0]?.estatus_ruta !== 1}
+                  onPress={() =>
+                    router.push({
+                      pathname: startRoutePath,
+                      params: {
+                        data: JSON.stringify(filteredData),
+                        crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
+                      },
+                    })
+                  }
+                  className="flex flex-row items-center justify-center w-11/12 rounded-lg p-3"
+                  style={{
+                    backgroundColor:
+                      dataRoute[0]?.estatus_ruta === 1 ? "#AC3958" : "#CCC",
+                    opacity: dataRoute[0]?.estatus_ruta === 1 ? 1 : 0.6,
+                  }}
                 >
                   {StartRouteIconNormal()}
-                  <Text className="font-normal text-xl text-center text-white ">
+                  <Text className="font-normal text-xl text-center text-white ml-2">
                     Iniciar Ruta
                   </Text>
                 </TouchableOpacity>
+
+                {/* Botón Finalizar Ruta */}
                 <TouchableOpacity
-                  className="flex flex-row items-center justify-center w-1/2  rounded-lg mx-4 p-3 mt-8"
-                  style={{ backgroundColor: "#AC3958" }}
-                  onPress={() => router.push("/operador/homeOp/findRoteOp")}
+                  disabled={dataRoute[0]?.estatus_ruta !== 2}
+                  onPress={() =>
+                    router.push({
+                      pathname: endRoutePath,
+                      params: {
+                        data: JSON.stringify(filteredData),
+                        crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
+                      },
+                    })
+                  }
+                  className="flex flex-row items-center justify-center w-11/12 rounded-lg p-3 mt-4"
+                  style={{
+                    backgroundColor:
+                      dataRoute[0]?.estatus_ruta === 2 ? "#AC3958" : "#CCC",
+                    opacity: dataRoute[0]?.estatus_ruta === 2 ? 1 : 0.6,
+                  }}
                 >
                   {StartRouteIconNormal()}
-                  <Text className="font-normal text-xl text-center text-white ">
+                  <Text className="font-normal text-xl text-center text-white ml-2">
                     Finalizar Ruta
                   </Text>
                 </TouchableOpacity>
               </View>
-            ) : (
-              <View></View>
             )}
           </ScrollView>
         </SafeAreaView>

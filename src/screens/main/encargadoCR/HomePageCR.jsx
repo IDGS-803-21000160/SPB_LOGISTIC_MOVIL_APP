@@ -1,28 +1,25 @@
-import React, { useEffect, useCallback, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
+  ActivityIndicator,
   Dimensions,
   Image,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 
-import {
-  getDailySummary,
-  getSummaryByDateAndUser,
-} from "../../../services/encargadoCrServices/sumaryService.js";
-import {
-  getFormattedDateMexico,
-  formatDateToSpanishLong,
-} from "../../../utils/dateFormatting.js";
+import { getSummaryByDateAndUser } from "../../../services/encargadoCrServices/sumaryService.js";
 import getCityName from "../../../utils/crName.js";
+import {
+  formatDateToSpanishLong,
+  getFormattedDateMexico,
+} from "../../../utils/dateFormatting.js";
 
 const { width, height } = Dimensions.get("window");
 

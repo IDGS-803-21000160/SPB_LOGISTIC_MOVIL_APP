@@ -1,34 +1,34 @@
+import ToastSuccess from "@/src/components/common/alerts/ToastSuccess";
 import Stepper from "@/src/components/common/Stepper";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import DropDownPicker from "react-native-dropdown-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
   Text,
   TextInput,
-  Button,
-  StyleSheet,
-  ScrollView,
-  Dimensions,
   TouchableOpacity,
-  Image,
-  Animated,
-  SafeAreaView,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import { Svg, Path } from "react-native-svg";
-import styles from "./styles/RegistrationCR";
-import { useRouter } from "expo-router";
-import { useUserStore } from "../../../store/userStore";
-import ToastSuccess from "@/src/components/common/alerts/ToastSuccess";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getFormattedDateMexico } from "../../../utils/dateFormatting";
-import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
-import { useFocusEffect } from "@react-navigation/native";
+import DropDownPicker from "react-native-dropdown-picker";
+
+import { Path, Svg } from "react-native-svg";
 import WarningAlert from "../../../components/common/informativeAlerts/warningAlert";
+import { postAddRoute } from "../../../services/encargadoCrServices/registrationRouteService";
+import { useUserStore } from "../../../store/userStore";
+import { getFormattedDateMexico } from "../../../utils/dateFormatting";
+import styles from "./styles/RegistrationCR";
 
 const { width, height } = Dimensions.get("window");
 
@@ -111,6 +111,8 @@ export default function RoutePartnerRegistrationCR() {
 
   const [storageData, setStorageData] = useState(null);
 
+  //Variable para el modal de agregar usuarios
+
   // ----------------------------------------------------------- Logica de la pantalla -----------------------------------------------------------
   const resetForm = () => {
     setStep(0);
@@ -133,6 +135,7 @@ export default function RoutePartnerRegistrationCR() {
       id_usuario: null,
       operadores: [],
     });
+    setButtonNext(true);
   };
 
   useFocusEffect(
@@ -146,6 +149,33 @@ export default function RoutePartnerRegistrationCR() {
 
   //Funcion para agregar operadores
   const addUnaryOperator = () => {
+    // Validación de campos requeridos
+    if (
+      !tipoRuta ||
+      !numRuta ||
+      !zona ||
+      !numLPS ||
+      !remisiones ||
+      !idOperador
+    ) {
+      Alert.alert(
+        "Campos incompletos",
+        "Por favor, completa todos los campos antes de registrar.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // Validación de remisiones no mayores que LPS
+    if (Number(remisiones) > Number(numLPS)) {
+      Alert.alert(
+        "Error en los datos",
+        "El número de remisiones no puede ser mayor que el número de LPS.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     const datos = {
       categoria_ruta: tipoRuta,
       fecha_registro: getFormattedDateMexico(),
@@ -168,12 +198,13 @@ export default function RoutePartnerRegistrationCR() {
     setRegistros((prevRegistros) => {
       const nuevosRegistros = [...prevRegistros, datos];
       // Actualizamos el resumen: guardamos el nombre del operador, la ruta, lps, remisiones y la posición (índice)
+      const numRutaFormateada = String(numRuta).padStart(2, "0");
       setSummaryRoutes((prevSummary) => [
         ...prevSummary,
         {
           index: nuevosRegistros.length - 1,
           nameOperador: nameOperador,
-          numRuta: numRuta,
+          numRuta: numRutaFormateada,
           lps: Number(numLPS),
           remisiones: Number(remisiones),
           tipo: "unitaria",
@@ -204,6 +235,7 @@ export default function RoutePartnerRegistrationCR() {
     setTipoRuta("");
     setNumTotalLPS("");
     setNumTotalRemisiones("");
+    setOperadoresTemp([]);
     setRegistrosCompartidos({
       numero_ruta: "",
       tipo_ruta: "Compartida",
@@ -242,6 +274,18 @@ export default function RoutePartnerRegistrationCR() {
     }
   }, [selectedUser]);
 
+  useEffect(() => {
+    if (selectedUser && typeOfRoute === "rutaCompartida") {
+      setSocio(selectedUser.nombre);
+      setNameOperador(selectedUser.nombre);
+      setIdOperador(selectedUser.id_persona);
+      setModalAddUsers(true);
+
+      // Opcional: limpiar para que no se vuelva a disparar
+      useUserStore.getState().setSelectedUser(null);
+    }
+  }, [selectedUser, typeOfRoute]);
+
   const getAsyncStorage = async () => {
     try {
       const registros = await AsyncStorage.getItem("authData");
@@ -256,10 +300,55 @@ export default function RoutePartnerRegistrationCR() {
   };
 
   const postServiceToAddRoute = async () => {
+    // 1. Validar que no haya números de ruta repetidos
+    const rutasSet = new Set();
+    for (const reg of registros) {
+      const ruta = reg.numero_ruta;
+      if (rutasSet.has(ruta)) {
+        Alert.alert("Rutas duplicadas", "No puede haber dos rutas iguales", [
+          {
+            text: "OK",
+            onPress: () => {
+              resetForm(); // 🔁 Aquí reseteamos todo
+            },
+          },
+        ]);
+        return;
+      }
+      rutasSet.add(ruta);
+    }
+
+    // 2. Validar que no haya id_operador repetidos
+    const operadoresSet = new Set();
+    for (const reg of registros) {
+      for (const op of reg.operadores) {
+        const idOp = op.id_operador;
+        if (operadoresSet.has(idOp)) {
+          Alert.alert(
+            "Operadores duplicados",
+            "Por favor, un operador no puede estar asignado a más de una ruta",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  resetForm(); // 🔁 También aquí
+                },
+              },
+            ]
+          );
+          return;
+        }
+        operadoresSet.add(idOp);
+      }
+    }
+
     try {
       const response = await postAddRoute(registros);
-      console.log("Respuesta de la API:", response);
-      nextStep();
+      if (response) {
+        nextStep();
+      }
+      console.log("Reguistros Compartidos 🥸: ", registrosCompartidos);
+      console.log("Datos a enviar popo:", registros);
     } catch (error) {
       console.error("Error posting route:", error);
     }
@@ -276,14 +365,6 @@ export default function RoutePartnerRegistrationCR() {
           </View>
           <View style={[styles.box, styles.box2]}>
             <Text>{registros?.length}</Text>
-          </View>
-          <View style={[styles.box, styles.box3]}>
-            <TouchableOpacity
-              className="rounded w-full justify-center items-center"
-              onPress={() => setuserModal(true)}
-            >
-              <Text>Ver</Text>
-            </TouchableOpacity>
           </View>
         </View>
         {/*Botones para seleccionar el tipo de ruta*/}
@@ -311,6 +392,10 @@ export default function RoutePartnerRegistrationCR() {
             }
             style={[styles.button, styles.buttonRight]}
             onPress={() => {
+              useUserStore.getState().setSelectedUser(null);
+              setSocio("");
+              setNameOperador("");
+              setIdOperador("");
               setTypeOfRoute("rutaCompartida");
               console.log("Settings pressed");
             }}
@@ -331,8 +416,12 @@ export default function RoutePartnerRegistrationCR() {
         {typeOfRoute === "rutaCompartida" ? sharedRouteForm() : null}
         {/*Formulario de registro*/}
         <ScrollView
-          contentContainerStyle={styles.container}
           nestedScrollEnabled={true}
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 10,
+            paddingBottom: 400,
+          }}
         >
           {typeOfRoute === "normal" ? normalRouteForm() : null}
         </ScrollView>
@@ -372,12 +461,15 @@ export default function RoutePartnerRegistrationCR() {
           </View>
           <View>
             <TouchableOpacity
+              disabled={summaryRoutes.length === 0}
               style={{
-                backgroundColor: "#D93958",
+                backgroundColor:
+                  summaryRoutes.length === 0 ? "#D3D3D3" : "#D93958",
                 padding: 16,
                 borderRadius: 10,
                 marginHorizontal: 16,
                 marginTop: 16,
+                opacity: summaryRoutes.length === 0 ? 0.6 : 1,
               }}
               onPress={() => postServiceToAddRoute()}
             >
@@ -399,24 +491,53 @@ export default function RoutePartnerRegistrationCR() {
 
   const successfullPage = () => {
     return (
-      <View className="">
+      <>
         <Text className="text-3xl m-5 font-bold color-red-500">
           Registro exitoso
         </Text>
-        <Image
-          style={styles.logo}
-          source={require("@/assets/images/SPB_Camion_Logo_Editable.png")}
-        />
-        <View className="ml-5">
-          <Text className="text-xl font-bold">Registros realizados:</Text>
-          <Text className="text-xl font-light">{registros.length}</Text>
-          <Text className="text-xl font-bold">Operadores Asignados</Text>
-          <Text className="text-xl font-light">{registros.length}</Text>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 10,
+            paddingBottom: 300,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View>
+            <Image
+              style={styles.logo}
+              source={require("@/assets/images/SPB_Camion_Logo_Editable.png")}
+            />
+            <View className="mx-2">
+              <Text className="text-xl font-bold">Registros realizados:</Text>
+              <Text className="text-xl font-light">{registros.length}</Text>
 
-          <Text className="text-xl font-bold">Rutas Asignadas</Text>
-          <Text className="text-xl font-light">{registros.length}</Text>
-        </View>
-      </View>
+              <Text className="text-xl font-bold">Rutas Asignadas</Text>
+              <Text className="text-xl font-light">{registros.length}</Text>
+            </View>
+            <TouchableOpacity
+              className="mx-2"
+              style={{
+                backgroundColor: "#C64560",
+                padding: 16,
+                borderRadius: 10,
+                marginTop: 20,
+              }}
+              onPress={() => resetForm()}
+            >
+              <Text
+                style={{
+                  color: "#fff",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                }}
+              >
+                Volver a registrar
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </>
     );
   };
 
@@ -428,14 +549,21 @@ export default function RoutePartnerRegistrationCR() {
           Operador
         </Text>
         <View className="flex-row items-center w-full  ">
-          <TextInput
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
-            editable={false}
-            style={styles.input}
-            placeholder="Ingresa el nombre del socio"
-            value={socio}
-            onChangeText={(text) => setSocio(text)}
-          />
+          <TouchableOpacity
+            className=" text-gray-900 text-md rounded-full h-14 flex-1 "
+            onPress={() => {
+              router.push("/encargadoCR/addQuickReport/Users");
+            }}
+          >
+            <TextInput
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
+              editable={false}
+              style={styles.input}
+              placeholder="Ingresa el nombre del socio"
+              value={socio}
+              onChangeText={(text) => setSocio(text)}
+            />
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonSearch}
             className="p-2.5 ml-2 text-sm font-medium text-white  rounded-lg border border-red-400 "
@@ -680,28 +808,6 @@ export default function RoutePartnerRegistrationCR() {
     );
   };
 
-  const modalToViewUsers = () => {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={userModal}
-        onRequestClose={() => {
-          setuserModal(false);
-        }}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>
-              ¡Hola! Este es un modal nativo.
-            </Text>
-            <Button title="Cerrar Modal" onPress={() => setuserModal(false)} />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   const navigateToUserList = () => {
     router.push("/encargadoCR/addQuickReport/Users");
     setModalAddUsers(false);
@@ -907,6 +1013,23 @@ export default function RoutePartnerRegistrationCR() {
   };
 
   const abrirModalRutaCompartida = () => {
+    if (!numRuta.trim() || !tipoRuta || !numTotalLPS || !numTotalRemisiones) {
+      Alert.alert(
+        "Campos incompletos",
+        "Por favor llena todos los campos antes de agregar un socio."
+      );
+      return;
+    }
+
+    if (Number(numTotalRemisiones) > Number(numTotalLPS)) {
+      Alert.alert(
+        "Error en los datos",
+        "El número de remisiones totales no puede ser mayor que el número total de LPS.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     if (registrosCompartidos.operadores.length === 0) {
       setRegistrosCompartidos({
         numero_ruta: numRuta,
@@ -956,9 +1079,40 @@ export default function RoutePartnerRegistrationCR() {
   };
 
   const addOperadores = () => {
+    // Sumar LPS y Remisiones asignados
+    const sumaLpsAsignados = registrosCompartidos.operadores.reduce(
+      (acc, operador) => acc + Number(operador.lps_asignados),
+      0
+    );
+    const sumaRemisionesAsignadas = registrosCompartidos.operadores.reduce(
+      (acc, operador) => acc + Number(operador.remisiones_asignadas),
+      0
+    );
+
+    // Validar contra los totales
+    if (
+      sumaLpsAsignados !== registrosCompartidos.lps_totales ||
+      sumaRemisionesAsignadas !== registrosCompartidos.remisiones_totales
+    ) {
+      alert(
+        `Error: La suma de LPS o Remisiones asignadas no coincide con los totales.\n` +
+          `LPS asignados: ${sumaLpsAsignados}, esperados: ${registrosCompartidos.lps_totales}\n` +
+          `Remisiones asignadas: ${sumaRemisionesAsignadas}, esperados: ${registrosCompartidos.remisiones_totales}`
+      );
+
+      // Limpiar operadores
+      registrosCompartidos.operadores = [];
+      setOperadoresTemp([]);
+      // Si registrosCompartidos está en estado, debes actualizarlo:
+      setRegistrosCompartidos({ ...registrosCompartidos });
+
+      return;
+    }
+
+    // Continuar con el guardado si todo es válido
     setRegistros((prev) => {
       const nuevosRegistros = [...prev, registrosCompartidos];
-      // Actualizamos el resumen para la ruta compartida
+
       setSummaryRoutes((prevSummary) => [
         ...prevSummary,
         {
@@ -968,13 +1122,16 @@ export default function RoutePartnerRegistrationCR() {
           lps: Number(numTotalLPS),
           remisiones: Number(numTotalRemisiones),
           tipo: "compartida",
-          socios: registrosCompartidos.operadores, // Arreglo con los socios que comparten la ruta
+          socios: registrosCompartidos.operadores,
         },
       ]);
+
       return nuevosRegistros;
     });
+
     clearSharedForm();
   };
+
   const nextStep = () => {
     fadeAnim.setValue(0);
     setStep((prevStep) => prevStep + 1);
@@ -1001,10 +1158,13 @@ export default function RoutePartnerRegistrationCR() {
             onClose={() => setToastVisible(false)}
           />
         ) : null}
-
-        <Stepper currentStep={step} />
+        <Stepper
+          currentStep={step}
+          onStepPress={(stepIndex) => {
+            setStep(stepIndex);
+          }}
+        />
       </View>
-      {modalToViewUsers()}
       {modalToAddSharedUsers()}
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         {renderStepContent()}

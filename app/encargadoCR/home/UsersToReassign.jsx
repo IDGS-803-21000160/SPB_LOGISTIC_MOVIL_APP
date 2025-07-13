@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
+import { StyleSheet, View } from "react-native";
 import ListUsers from "../../../src/screens/main/encargadoCR/ListUsersScreen";
 import { useUserToReasingneStore } from "../../../src/store/userStore";
-import { useRouter } from "expo-router";
 
 const ListUsersToReassign = () => {
   const router = useRouter();
@@ -28,7 +27,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    marginTop: 60,
+    marginTop: 30,
   },
 });
 

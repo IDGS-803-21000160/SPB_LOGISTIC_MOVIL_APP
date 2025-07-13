@@ -1,35 +1,30 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from "react-native";
-import { Dimensions } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { useContext } from "react";
-import User from "../../../components/common/User";
-import { Svg, Path, Use } from "react-native-svg";
+import {
+  Alert,
+  Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+
+import { Path, Svg } from "react-native-svg";
 import BadgeGroup from "../../../components/common/BadgeGroup";
-import { capitalizeEachWord } from "../../../utils/textUtils";
+import User from "../../../components/common/User";
+import { extractNumRuta, getCiudadFromCR } from "../../../utils/textUtils";
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
-import { extractNumRuta } from "../../../utils/textUtils";
-import { useUserToAddToSharedRouteStore } from "../../../store/userStore";
 import UsersList from "../../../components/common/UsersList";
 import { postConvertSharedRoute } from "../../../services/encargadoCrServices/registrationRouteService";
-
+import { useUserToAddToSharedRouteStore } from "../../../store/userStore";
 const { width, height } = Dimensions.get("window");
 
 const ConvertToShared = () => {
@@ -75,10 +70,9 @@ const ConvertToShared = () => {
   const [zonaOperadorActual, setZonaOperadorActual] = useState("");
   const [lpsAsignadosActual, setLpsAsignadosActual] = useState(0);
   const [remisionesAsignadasActual, setRemisionesAsignadasActual] = useState(0);
+  const [idRuta, setIdRuta] = useState(0);
 
   useEffect(() => {
-    //console.log("Data de la ruta:", dataRoute);
-    //console.log("id general ruta", dataRoute[0].id_ruta);
     console.log("Usuario desde lista para add to shared route:", selectedUser);
 
     setLpsTotales(dataRoute[0].lps_totales);
@@ -90,6 +84,7 @@ const ConvertToShared = () => {
     setNumRuta(dataRoute[0].numero_ruta);
     setCategoriaRuta(dataRoute[0].categoria_ruta);
     setNombre(selectedUser?.nombre);
+    setIdRuta(dataRoute[0]?.id_ruta);
 
     //Asignacion de datos del operador actual
     setIdRutaOperador(dataRoute[0].id_ruta_operador);
@@ -99,7 +94,15 @@ const ConvertToShared = () => {
   }, []);
 
   useEffect(() => {
+    console.log("Selected User 😍:", selectedUser);
+
     setNombre(selectedUser?.nombre);
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      setModalAddUsers(true);
+    }
   }, [selectedUser]);
 
   const clearVariables = () => {
@@ -112,6 +115,14 @@ const ConvertToShared = () => {
   useEffect(() => {}, [newOperador]);
 
   const handleAddSharedUser = () => {
+    if (remisionesAsignadas > lpsAsignados) {
+      Alert.alert(
+        "Valores inválidos",
+        "El número de remisiones asignadas no puede ser mayor que el número de LPS asignados."
+      );
+      return;
+    }
+
     if (selectedUser) {
       const existe = usuariosCompartidos.some(
         (u) => u.id_persona === selectedUser.id_persona
@@ -132,8 +143,8 @@ const ConvertToShared = () => {
           remisionesTotales: Number(remisionesTotales),
           idRutaOperador: idRutaOperador,
           zonaRutaOperadorActual: zonaOperadorActual,
-          lpsRutaOperadorActual: Number(lpsAsignadosActual),
-          remisionesRutaOperadorActual: Number(remisionesAsignadasActual),
+          lpsRutaOperadorActual: Number(numeroLps),
+          remisionesRutaOperadorActual: Number(remisiones),
           operadoresData: [
             ...prev.operadoresData,
             {
@@ -152,6 +163,27 @@ const ConvertToShared = () => {
     }
     setModalAddUsers(false);
   };
+
+  useEffect(() => {
+    setNewOperador((prev) => ({
+      ...prev,
+      idRuta: idRuta,
+      lpsTotales: Number(lpsTotales),
+      remisionesTotales: Number(remisionesTotales),
+      idRutaOperador: idRutaOperador,
+      zonaRutaOperadorActual: zona,
+      lpsRutaOperadorActual: Number(numeroLps),
+      remisionesRutaOperadorActual: Number(remisiones),
+    }));
+  }, [
+    idRuta,
+    lpsTotales,
+    remisionesTotales,
+    idRutaOperador,
+    zona,
+    numeroLps,
+    remisiones,
+  ]);
 
   const headerToScreen = () => {
     return (
@@ -196,7 +228,7 @@ const ConvertToShared = () => {
         <View className="mt-2">
           <BadgeGroup
             items={[
-              { label: "León", color: "green" },
+              { label: getCiudadFromCR(numRuta), color: "blue" },
               { label: categoriaRuta ?? "", color: "red" },
             ]}
           />
@@ -307,6 +339,13 @@ const ConvertToShared = () => {
     return <View className="mx-4 mt-1"></View>;
   };
 
+  // Función que borrará un usuario por índice
+  const handleDelete = (indexAEliminar) => {
+    setUsuariosCompartidos((prev) =>
+      prev.filter((_, i) => i !== indexAEliminar)
+    );
+  };
+
   const addAndListOperators = () => {
     return (
       <View className="mx-6 mt-1">
@@ -332,15 +371,21 @@ const ConvertToShared = () => {
           </View>
         </TouchableOpacity>
         <View>
-          <UsersList dataRoutes={usuariosCompartidos}></UsersList>
-          <TouchableOpacity
-            style={styles.buttonAddMore}
-            onPress={() => toSharedRoute()}
-          >
-            <View style={styles.contentAddMore}>
-              <Text style={styles.buttonTextAddMore}>Convertir</Text>
-            </View>
-          </TouchableOpacity>
+          <UsersList
+            dataRoutes={usuariosCompartidos}
+            onDelete={handleDelete}
+            showButton={true}
+          ></UsersList>
+          {usuariosCompartidos.length > 0 && (
+            <TouchableOpacity
+              style={styles.buttonAddMore}
+              onPress={() => toSharedRoute()}
+            >
+              <View style={styles.contentAddMore}>
+                <Text style={styles.buttonTextAddMore}>Convertir</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -352,10 +397,76 @@ const ConvertToShared = () => {
   };
 
   const toSharedRoute = async () => {
+    if (remisionesTotales > lpsTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        "El número total de remisiones no puede ser mayor que el total de LPS."
+      );
+      return;
+    }
+
+    if (remisiones > numeroLps) {
+      Alert.alert(
+        "Valores inválidos",
+        "El número de remisiones asignadas al operador actual no puede ser mayor que el número de LPS asignados."
+      );
+      return;
+    }
+
+    // 3. Sumar los lps_asignados y remisiones_asignadas de usuariosCompartidos
+    const sumaLpsCompartidos = usuariosCompartidos.reduce(
+      (acc, usuario) => acc + usuario.lps_asignados,
+      0
+    );
+    const sumaRemisionesCompartidas = usuariosCompartidos.reduce(
+      (acc, usuario) => acc + usuario.remisiones_asignadas,
+      0
+    );
+
+    // 4. Agregar los valores del operador actual (numeroLps y remisiones)
+    const totalLpsAsignados = sumaLpsCompartidos + Number(numeroLps);
+    const totalRemisionesAsignadas =
+      sumaRemisionesCompartidas + Number(remisiones);
+
+    // 5. Validar que la suma de LPS no exceda lpsTotales
+    if (totalLpsAsignados > lpsTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        `La suma total de LPS asignados (${totalLpsAsignados}) no puede ser mayor que ${lpsTotales}.`
+      );
+      return;
+    }
+
+    // 6. Validar que la suma de remisiones no exceda remisionesTotales
+    if (totalRemisionesAsignadas > remisionesTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        `La suma total de remisiones asignadas (${totalRemisionesAsignadas}) no puede ser mayor que ${remisionesTotales}.`
+      );
+      return;
+    }
+
+    if (totalRemisionesAsignadas < remisionesTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        "La suma total de remisiones asignadas no puede ser menor que el total de remisiones disponibles."
+      );
+      return;
+    }
+
+    if (totalLpsAsignados < lpsTotales) {
+      Alert.alert(
+        "Valores inválidos",
+        "La suma total de LPS asignados no puede ser menor que el total de LPS establecidos."
+      );
+      return;
+    }
+
     try {
       const response = await postConvertSharedRoute(newOperador);
       console.log("Ruta compartida creada con éxito:", response);
       router.replace("/encargadoCR/home/Index");
+      console.log("Hola señor");
     } catch (error) {
       console.error("Error al convertir a ruta compartida:", error);
     }
@@ -409,14 +520,21 @@ const ConvertToShared = () => {
                         Operador
                       </Text>
                       <View className="flex-row items-center w-full  ">
-                        <TextInput
-                          className="bg-white border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
-                          editable={false}
-                          style={styles.input}
-                          placeholder="Ingresa el nombre del socio"
-                          value={nombre}
-                          onChangeText={(text) => setNombre(text)}
-                        />
+                        <TouchableOpacity
+                          className=" text-gray-900 text-md rounded-full h-14 flex-1 "
+                          onPress={() => {
+                            navigateToUserList();
+                          }}
+                        >
+                          <TextInput
+                            className="bg-white border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
+                            editable={false}
+                            style={styles.input}
+                            placeholder="Ingresa el nombre del socio"
+                            value={nombre}
+                            onChangeText={(text) => setNombre(text)}
+                          />
+                        </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.buttonSearch}
                           className="p-2.5 ml-2 text-sm font-medium text-white  rounded-lg border border-red-400 "

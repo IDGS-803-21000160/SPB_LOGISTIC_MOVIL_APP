@@ -1,9 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import { StyleSheet } from "react-native";
 import {
   SafeAreaProvider,
-  SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import DailySummaryLog from "../../../src/screens/main/socio/DailySummaryLog";
@@ -14,7 +11,10 @@ export default function HomeScreen() {
   return (
     <>
       <SafeAreaProvider style={styles.container}>
-        <DailySummaryLog></DailySummaryLog>
+        <DailySummaryLog
+          startRoutePath={"/operador/homeOp/startRouteOp"}
+          endRoutePath={"/operador/homeOp/findRoteOp"}
+        ></DailySummaryLog>
       </SafeAreaProvider>
     </>
   );
@@ -24,8 +24,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-
-    top0: 0,
   },
   text: {
     color: "#fff",

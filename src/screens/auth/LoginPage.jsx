@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
+import Spinner from "@/src/components/common/Spinner";
+import { useAuth } from "@/src/context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
   Dimensions,
-  TouchableOpacity,
-  TextInput,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import Spinner from "@/src/components/common/Spinner";
-import { router } from "expo-router";
 import { authService } from "../../services/loginServicea/loginService.js";
-import { useAuth } from "@/src/context/AuthContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const HEADER_IMAGE_HEIGHT = width * 0.4;
 
 const LoginPage = () => {
@@ -73,10 +73,10 @@ const LoginPage = () => {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
     >
-      {/* Logo fijo en la parte superior */}
+      {/* Logo fijo arriba */}
       <Image
         source={require("../../../assets/images/SPB_Letras_Logo_Editable.png")}
         style={styles.logoAbsolute}
@@ -86,35 +86,38 @@ const LoginPage = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Bienvenido</Text>
-        <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+        <View style={{ flex: 1, width: "100%", alignItems: "center" }}>
+          <Text style={styles.title}>Bienvenido</Text>
+          <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
 
-        <View style={styles.formContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Usuario"
-            placeholderTextColor="#888"
-            value={username}
-            onChangeText={setUsername}
-          />
+          <View style={styles.formContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Usuario"
+              placeholderTextColor="#888"
+              value={username}
+              onChangeText={setUsername}
+            />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+            <TextInput
+              style={styles.input}
+              placeholder="Contraseña"
+              placeholderTextColor="#888"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
 
-          <TouchableOpacity
-            style={styles.button}
-            activeOpacity={0.8}
-            onPress={handleLogin}
-          >
-            <Text style={styles.buttonText}>Iniciar Sesión</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              activeOpacity={0.8}
+              onPress={handleLogin}
+            >
+              <Text style={styles.buttonText}>Iniciar Sesión</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -137,6 +140,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: HEADER_IMAGE_HEIGHT + (Platform.OS === "ios" ? 80 : 60),
+    paddingBottom: 40, // Para asegurar espacio extra debajo
   },
   title: {
     fontSize: 20,

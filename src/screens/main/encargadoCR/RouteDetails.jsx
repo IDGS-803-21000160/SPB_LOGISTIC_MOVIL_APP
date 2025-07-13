@@ -1,32 +1,32 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  Modal,
-  Button,
-  TextInput,
-  ScrollView,
   Alert,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-  getSummaryById,
-  updateRutaService,
   cambiarEstadoRutaService,
+  getSummaryById,
   updateRutaOperadorService,
+  updateRutaService,
 } from "../../../services/encargadoCrServices/sumaryService";
-import { useRouter } from "expo-router";
 import { useUserToReasingneStore } from "../../../store/userStore";
-import { useFocusEffect } from "@react-navigation/native";
 
-import Svg, { Path, Use } from "react-native-svg";
-import { getFormattedDateMexico } from "../../../utils/dateFormatting";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import UsersList from "../../../components/common/UsersList";
-const { width, height } = Dimensions.get("window");
+import Svg, { Path } from "react-native-svg";
 import Spinner from "../../../components/common/Spinner";
+import UsersList from "../../../components/common/UsersList";
+import getCityName from "../../../utils/crName";
+import { getFormattedDateMexico } from "../../../utils/dateFormatting";
+const { width, height } = Dimensions.get("window");
 
 const RouteDetails = ({ idRute }) => {
   const router = useRouter();
@@ -343,8 +343,8 @@ const RouteDetails = ({ idRute }) => {
                   <View className="" style={{ width: width - 100 }}>
                     <View className="flex ">
                       <Text
-                        className="font-extrabold text-black text-4xl mx-2 mr-2"
-                        style={{ color: "white" }}
+                        className="font-extrabold text-black mx-2 mr-2"
+                        style={{ color: "white", fontSize: 25 }}
                       >
                         {dataSummary[0]?.numero_ruta}
                       </Text>
@@ -365,7 +365,7 @@ const RouteDetails = ({ idRute }) => {
                       <>
                         <View className="mt-4">
                           <Text
-                            className="font-semibold text-black text-2xl mx-2 mr-2 mt-1"
+                            className="font-semibold text-black text-xl mx-2 mr-2 mt-1"
                             style={{ color: "white" }}
                           >
                             Operador
@@ -373,7 +373,7 @@ const RouteDetails = ({ idRute }) => {
                         </View>
                         <View>
                           <Text
-                            className="font-normal text-black text-xl mx-2 mr-2 mt-1"
+                            className="font-normal text-black text-md pr-28 mx-2 mr-2 mt-1"
                             style={{ color: "white" }}
                           >
                             {dataSummary[0]?.nombre}
@@ -385,8 +385,10 @@ const RouteDetails = ({ idRute }) => {
                 </View>
                 {/*Resumen Ruta, CR y Categoria de la ruta*/}
                 <View className="flex flex-row mx-4 mt-5">
-                  <View className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                    <Text className="text-green-800">León</Text>
+                  <View className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    <Text className="text-blue-800">
+                      {getCityName(dataSummary[0]?.numero_ruta)}
+                    </Text>
                   </View>
                   <View className="bg-red-100  text-red-800  text-xs font-medium px-2.5 py-0.5 rounded-full ml-3">
                     <Text className="text-red-800 ">
@@ -459,34 +461,39 @@ const RouteDetails = ({ idRute }) => {
                 {/*Acciones de la Ruta (Editar, convertir a compartida y eliminar)*/}
                 <View>
                   <View className="flex flex-row ">
-                    <View>
-                      {/*Boton de Editar Ruta*/}
-                      <TouchableOpacity
-                        className=" text-white font-bold py-2 px-4 rounded-full"
-                        style={styles.actionButtons}
-                        onPress={() => setModalEdit(true)}
-                      >
-                        <Svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth="2"
-                          stroke="#AC3958"
-                          className="size-6"
-                          width={28}
-                          height={28}
+                    {dataRoutes[0]?.length == 1 ? (
+                      <View>
+                        {/*Boton de Editar Ruta*/}
+                        <TouchableOpacity
+                          className=" text-white font-bold py-2 px-4 rounded-full"
+                          style={styles.actionButtons}
+                          onPress={() => setModalEdit(true)}
                         >
-                          <Path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                          />
-                        </Svg>
-                      </TouchableOpacity>
-                      <Text className="ml-4 mt-1 text-black text-sm">
-                        Editar Ruta
-                      </Text>
-                    </View>
+                          <Svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2"
+                            stroke="#AC3958"
+                            className="size-6"
+                            width={28}
+                            height={28}
+                          >
+                            <Path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                            />
+                          </Svg>
+                        </TouchableOpacity>
+                        <Text className="ml-4 mt-1 text-black text-sm">
+                          Editar Ruta
+                        </Text>
+                      </View>
+                    ) : (
+                      <></>
+                    )}
+
                     {/*Boton de Eliminar Ruta*/}
                     <View className="content-center items-center">
                       <TouchableOpacity
@@ -556,6 +563,7 @@ const RouteDetails = ({ idRute }) => {
                     {/*Boton de Convertir Rutas y Agregar operador*/}
                     {dataRoutes[0]?.length >= 2 ? (
                       <>
+                        {/*Boton de Agregar Operador
                         <View className="content-center items-center">
                           <TouchableOpacity
                             className=" text-white font-bold   rounded-full flex items-center justify-center content-center"
@@ -582,7 +590,7 @@ const RouteDetails = ({ idRute }) => {
                           <Text className="ml-4 mt-1 text-black text-center text-sm">
                             Agregar Operador
                           </Text>
-                        </View>
+                        </View>*/}
                       </>
                     ) : (
                       <>

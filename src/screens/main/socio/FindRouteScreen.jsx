@@ -1,23 +1,28 @@
-import React, { useEffect, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
   Alert,
-  Image,
-  TouchableOpacity,
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { uploadImageAsync } from "../../../utils/firebaseStorage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Spinner from "../../../components/common/Spinner";
+import { postCierreRuta } from "../../../services/operadorServices/finruta";
+import { getFormattedDateMexico } from "../../../utils/dateFormatting";
+import { uploadFileAsync } from "../../../utils/firebaseStorage";
+
 import * as ImagePicker from "expo-image-picker";
+import Spinner from "../../../components/common/Spinner";
 
 const { width } = Dimensions.get("window");
 
 const CierreRutaForm = () => {
+  const router = useRouter();
+
   const [capturaSimplieroute2, setCapturaSimplieroute2] = useState(null);
   const [imagenKilometraje, setImagenKilometraje] = useState(null);
   const [kilometrajeFinal, setKilometrajeFinal] = useState("");
@@ -29,10 +34,27 @@ const CierreRutaForm = () => {
   const [idRutaOperador, setIdRutaOperador] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const { data, crData } = useLocalSearchParams();
+  const dataRoute = JSON.parse(data);
+  const datosCR = JSON.parse(crData);
+
+  //Variables datos de la ruta
+  const [numRuta, setNumRuta] = useState("");
+  const [lpsAsignados, setLpsAsignados] = useState("");
+  const [remisionesAsignadas, setRemisionesAsignadas] = useState("");
+  const [ruta, setRuta] = useState("");
+  const [zona, setZona] = useState("");
+
   useEffect(() => {
-    AsyncStorage.getItem("id_operador").then((id) => {
-      setIdRutaOperador(id);
-    });
+    console.log("🥎Data de la ruta:", dataRoute[0][0]);
+    console.log("🐽Data CR:", datosCR);
+
+    setNumRuta(dataRoute[0][0].numero_ruta);
+    setLpsAsignados(dataRoute[0][0].lps_asignados);
+    setRemisionesAsignadas(dataRoute[0][0].remisiones_asignadas);
+    setRuta(dataRoute[0][0].tipo_ruta);
+    setZona(dataRoute[0][0].zona);
+    setIdRutaOperador(dataRoute[0][0].id_ruta_operador);
   }, []);
 
   const seleccionarImagen = async (setter) => {
@@ -48,9 +70,58 @@ const CierreRutaForm = () => {
     }
   };
 
+  const postServiceCierreRuta = async (payload) => {
+    try {
+      const response = await postCierreRuta(payload);
+      if (response) {
+        Alert.alert("Éxito", "Cierre de ruta registrado correctamente");
+        router.back();
+      } else {
+        Alert.alert("Error", "No se pudo registrar el Cierre de ruta");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Ocurrió un error al registrar el Cierre de ruta");
+    }
+  };
+
   const handleSubmit = async () => {
     if (!kilometrajeFinal) {
       Alert.alert("Atención", "El kilometraje final es obligatorio");
+      return;
+    }
+
+    if (!lpsExitosos) {
+      Alert.alert("Atención", "Los LPS exitosos son obligatorios");
+      return;
+    }
+
+    if (!lpsFallidos) {
+      Alert.alert("Atención", "Los LPS fallidos son obligatorios");
+      return;
+    }
+
+    if (!remisionesFinales) {
+      Alert.alert("Atención", "Las remisiones finales son obligatorias");
+      return;
+    }
+
+    if (!visitados) {
+      Alert.alert("Atención", "El número de visitados es obligatorio");
+      return;
+    }
+
+    if (!cancelados) {
+      Alert.alert("Atención", "El número de cancelados es obligatorio");
+      return;
+    }
+
+    if (!capturaSimplieroute2) {
+      Alert.alert("Atención", "La captura Simplieroute final es obligatoria");
+      return;
+    }
+
+    if (!imagenKilometraje) {
+      Alert.alert("Atención", "La imagen del kilometraje final es obligatoria");
       return;
     }
     setLoading(true);
@@ -61,30 +132,35 @@ const CierreRutaForm = () => {
       let urlKilometraje = "";
 
       if (capturaSimplieroute2) {
-        urlSimple = await uploadImageAsync(
+        urlSimple = await uploadFileAsync(
           capturaSimplieroute2,
-          `cierreRuta/${idRutaOperador}/simple_${Date.now()}.jpg`
+          `cierreRuta/${idRutaOperador}/simple_${Date.now()}.jpg`,
+          "image/jpeg"
         );
       }
       if (imagenKilometraje) {
-        urlKilometraje = await uploadImageAsync(
+        urlKilometraje = await uploadFileAsync(
           imagenKilometraje,
-          `cierreRuta/${idRutaOperador}/km_${Date.now()}.jpg`
+          `cierreRuta/${idRutaOperador}/km_${Date.now()}.jpg`,
+          "image/jpeg"
         );
       }
 
       // 2) armo payload (puede ser JSON en vez de FormData)
       const payload = {
-        id_ruta_operador: parseInt(idRutaOperador, 10),
-        kilometraje_final: kilometrajeFinal,
-        lps_exitosos: lpsExitosos,
-        lps_fallidos: lpsFallidos,
-        remisiones_finales: remisionesFinales,
+        idRutaOperador: idRutaOperador,
+        capturaSimplieroute2: urlSimple,
+        lpsExitosos: lpsExitosos,
+        lpsFallidos: lpsFallidos,
+        remisionesFinales: remisionesFinales,
+        fechaCierre: getFormattedDateMexico(),
+        kilometrajeFinal: kilometrajeFinal,
+        imagenKilometraje: urlKilometraje,
         visitados,
         cancelados,
-        foto_simple_url: urlSimple,
-        foto_km_url: urlKilometraje,
       };
+
+      const postResponse = await postServiceCierreRuta(payload);
 
       // 3) llamo a tu servicio para guardar todo (ya sea en tu API o en Firestore)
       console.log("Payload a enviar:", payload);
@@ -109,7 +185,7 @@ const CierreRutaForm = () => {
             <Text className="font-bold text-2xl text-center">
               Form. Cierre de ruta
             </Text>
-            <Text className="text-center">LN-FLTSPB-10</Text>
+            <Text className="text-center">{numRuta}</Text>
             <View className="mt-4">
               <Text className=" text-sm text-gray-500">
                 Finalizaras la ruta, con las siguientes especificaciones
@@ -117,20 +193,21 @@ const CierreRutaForm = () => {
               <View className="mt-4">
                 <Text className="text-sm text-gray-500">
                   Lps Asignados a la ruta:{" "}
-                  <Text className="font-bold text-gray-700">24</Text>
+                  <Text className="font-bold text-gray-700">
+                    {lpsAsignados}
+                  </Text>
                 </Text>
 
                 <Text className=" text-sm text-gray-500">
                   Remisiones asignadas a la ruta:{" "}
-                  <Text className="font-bold text-gray-700">24</Text>
+                  <Text className="font-bold text-gray-700">
+                    {remisionesAsignadas}
+                  </Text>
                 </Text>
                 <Text className=" text-sm text-gray-500">
-                  Ruta {""}
-                  <Text className="font-bold text-gray-700">Local</Text> con
-                  zona a{" "}
-                  <Text className="font-bold text-gray-700">
-                    León Guanajuato
-                  </Text>
+                  Ruta <Text className="font-bold text-gray-700">{ruta}</Text>{" "}
+                  con zona a{" "}
+                  <Text className="font-bold text-gray-700">{zona}</Text>
                 </Text>
               </View>
             </View>
@@ -158,18 +235,6 @@ const CierreRutaForm = () => {
                 placeholder="Ej. 50"
               />
             </View>
-
-            <View style={styles.field}>
-              <Text style={styles.label}>LPS Fallidos</Text>
-              <TextInput
-                style={styles.input}
-                value={lpsFallidos}
-                onChangeText={setLpsFallidos}
-                keyboardType="numeric"
-                placeholder="Ej. 3"
-              />
-            </View>
-
             <View style={styles.field}>
               <Text style={styles.label}>Remisiones Finales</Text>
               <TextInput
@@ -180,6 +245,20 @@ const CierreRutaForm = () => {
                 placeholder="Ej. 20"
               />
             </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>LPS Fallidos</Text>
+              <TextInput
+                style={styles.input}
+                value={lpsFallidos}
+                onChangeText={setLpsFallidos}
+                keyboardType="numeric"
+                placeholder="Ej. 3"
+              />
+            </View>
+            <View className="bg-red-100 h-0.5 mb-4"></View>
+            <Text className="text-sm text-gray-500 my-2">
+              En relacion a los fallidos
+            </Text>
 
             <View style={styles.fieldRow}>
               <View style={styles.fieldSmall}>
@@ -201,6 +280,7 @@ const CierreRutaForm = () => {
                 />
               </View>
             </View>
+            <View className="bg-red-100 h-0.5 mb-4"></View>
 
             <View style={styles.field}>
               <Text style={styles.label}>Captura Simplieroute Final</Text>

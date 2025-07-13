@@ -1,8 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { HomeIcon } from "../../utils/icons/Icons";
-
 const Home = ({ color }) => (
   <Svg style={styles.icon} viewBox="0 0 20 20">
     <Path
@@ -73,6 +72,8 @@ const ProfileIcon = ({ color }) => (
 );
 
 const TabBar = ({ state, descriptors, navigation }) => {
+  const insets = useSafeAreaInsets();
+  const bottomInset = insets.bottom;
   const tabIcons = {
     home: { icon: Home, name: "Inicio" },
     homeOp: { icon: Home, name: "Inicio" },
@@ -85,7 +86,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
   };
 
   return (
-    <View style={styles.tabbar}>
+    <View style={[styles.tabbar, { bottom: bottomInset + 10 }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label =
