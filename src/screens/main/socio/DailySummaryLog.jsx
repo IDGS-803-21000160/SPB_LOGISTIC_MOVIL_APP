@@ -190,14 +190,11 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
     const idPersona = userData.detalles.id_persona;
     const fecha = getFormattedDateMexico();
 
-    console.log("fecha ", userData);
-
     setDataStorage(userData);
     setOperadorId(idPersona);
 
     try {
       const rutas = await getRouteOperador(idPersona, fecha);
-      console.log("😀 data Route (antes de setState)", rutas[0] ?? null);
       console.log("🐶 filtered data (antes de setState)", rutas[0]);
 
       console.log("Operador ID:", idPersona);

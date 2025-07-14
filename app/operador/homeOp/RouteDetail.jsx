@@ -1,0 +1,32 @@
+import { StyleSheet } from "react-native";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import DailySummaryLog from "../../../src/screens/main/socio/DailySummaryLog";
+
+export default function RouteDetail() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <>
+      <SafeAreaProvider style={styles.container}>
+        <DailySummaryLog
+          startRoutePath={"/operador/homeOp/startRouteOp"}
+          endRoutePath={"/operador/homeOp/findRoteOp"}
+        ></DailySummaryLog>
+      </SafeAreaProvider>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  text: {
+    color: "#fff",
+    fontSize: 20,
+  },
+});
