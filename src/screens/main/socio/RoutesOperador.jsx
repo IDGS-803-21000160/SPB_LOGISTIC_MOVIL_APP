@@ -31,7 +31,7 @@ const RoutesOperador = () => {
       console.error("No user data available");
       return;
     } else {
-      console.log("data usuario", userData);
+      //console.log("data usuario", userData);
     }
 
     const idPersonaOperador = userData.detalles.id_persona;
@@ -42,7 +42,6 @@ const RoutesOperador = () => {
     try {
       const response = await getRouteOperador(idPersonaOperador, fechaHoy);
       if (response) {
-        console.log("Rutas obtenidas:", response[0]);
         setRoutes(response[0]);
         // Aquí puedes manejar la respuesta, por ejemplo, guardarla en el estado
       } else {
@@ -90,7 +89,7 @@ const RoutesOperador = () => {
               className="font-normal text-black text-sm text-center"
               style={{ color: "black" }}
             >
-              {dataStorage.detalles.nombre}
+              {dataStorage?.detalles?.nombre}
             </Text>
           </View>
         </View>
@@ -166,7 +165,12 @@ const RoutesOperador = () => {
                     <View className="mt-6" style={{ alignSelf: "flex-end" }}>
                       <TouchableOpacity
                         onPress={() =>
-                          router.push(`encargadoCR/home/${item.id_ruta}`)
+                          router.push({
+                            pathname: "/operador/homeOp/RouteDetail",
+                            params: {
+                              data: JSON.stringify(item.id_ruta_operador),
+                            },
+                          })
                         }
                       >
                         <Text

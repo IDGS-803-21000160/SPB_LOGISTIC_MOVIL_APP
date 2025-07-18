@@ -12,7 +12,7 @@ import {
 import Svg, { Path } from "react-native-svg";
 import { useAuth } from "../../../../src/context/AuthContext";
 
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   getInfoOperador,
   getInfoOperadorandCR,
@@ -25,13 +25,19 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
 
   const [filteredData, setFilteredData] = useState([]);
   const [dataStorage, setDataStorage] = useState(null);
-  const [dataRoute, setDataRoute] = useState(null);
+  const [dataRoute, setDataRoute] = useState([]);
   const [operadorData, setOperadorData] = useState(null);
   const [dataOperadorwhitCR, setDataOperadorwhitCR] = useState(null);
 
   //Variables de operador
   const [operador, setOperador] = useState(null);
   const [operadorId, setOperadorId] = useState(null);
+
+  //Datos de la ruta
+  const { data } = useLocalSearchParams();
+  const dataRouteParams = JSON.parse(data);
+
+  console.log("Data de la ruta:", dataRouteParams);
 
   const { userData, logout } = useAuth();
 
@@ -195,15 +201,14 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
 
     try {
       const rutas = await getRouteOperador(idPersona, fecha);
-      console.log("🐶 filtered data (antes de setState)", rutas[0]);
 
-      console.log("Operador ID:", idPersona);
+      const rutasFiltradas = rutas[0].filter(
+        (ruta) => ruta.id_ruta_operador === dataRouteParams
+      );
 
-      setDataRoute(rutas[0] ?? null);
-      setFilteredData(rutas);
+      setDataRoute(rutasFiltradas);
 
       const crResponse = await getInfoOperadorandCR(idPersona, fecha);
-      console.log("🚀 cr (antes de setState)", crResponse);
 
       setDataOperadorwhitCR(crResponse);
     } catch (error) {
@@ -240,25 +245,20 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
   };
 
   useEffect(() => {
-    if (filteredData.length > 0) {
-      const crQueRegistro = filteredData[0]?.cr_que_registro;
+    if (dataRoute) {
+      const crQueRegistro = dataRoute[0]?.cr_que_registro;
 
       if (crQueRegistro) {
-        console.log(
-          `ℹ️ Llamando a getOperadorData con cr_que_registro: ${crQueRegistro}`
-        );
-
         getOperadorData(crQueRegistro)
           .then((data) => {
             setOperadorData(data);
-            console.log("✅ Operador Data:", data);
           })
           .catch((error) =>
             console.error("❌ Error fetching operador data:", error)
           );
       }
     }
-  }, [filteredData]);
+  }, [dataRoute]);
 
   const assignmentInformation = () => {
     // Renderiza la información de asignación y botones de acción
@@ -290,30 +290,11 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                   </Text>
                 </View>
               </View>
-              {/* Mensaje de bienvenida si hay ruta asignada */}
-              {filteredData[0]?.length >= 1 &&
-              (dataRoute[0]?.estatus_ruta == 1 ||
-                dataRoute[0]?.estatus_ruta == 2) ? (
-                <View className="mx-4 mb-4">
-                  <Text className="mt-10 font-medium text-white text-lg">
-                    Bienvenido
-                  </Text>
-                  <View className="flex flex-row items-center mt-2">
-                    {CustomIcon()}
-                    <Text className="font-semibold text-white text-2xl ml-4">
-                      {dataStorage.detalles.nombre}
-                    </Text>
-                  </View>
-                </View>
-              ) : (
-                <Text></Text>
-              )}
             </View>
             {/* Tarjeta con detalles de la ruta asignada */}
             <View style={[styles.card, styles.cardOverlay]}>
-              {filteredData[0]?.length &&
-              (dataRoute[0]?.estatus_ruta == 1 ||
-                dataRoute[0]?.estatus_ruta == 2) >= 1 ? (
+              {dataRoute[0]?.estatus_ruta == 1 ||
+              dataRoute[0]?.estatus_ruta == 2 ? (
                 <>
                   <Text className="font-extrabold text-gray-500 text-2xl">
                     CR {dataOperadorwhitCR?.crData[0]?.nombre_corto}
@@ -411,7 +392,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
               )}
             </View>
             {/* Botones para iniciar/finalizar ruta */}
-            {filteredData[0]?.length >= 1 && (
+            {dataRoute && (
               <View className="flex flex-col items-center mt-8 space-y-4">
                 {/* Botón Iniciar Ruta */}
                 <TouchableOpacity
@@ -420,7 +401,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                     router.push({
                       pathname: startRoutePath,
                       params: {
-                        data: JSON.stringify(filteredData),
+                        data: JSON.stringify(dataRoute),
                         crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
                       },
                     })
@@ -445,7 +426,7 @@ const DailySummaryLog = ({ startRoutePath, endRoutePath }) => {
                     router.push({
                       pathname: endRoutePath,
                       params: {
-                        data: JSON.stringify(filteredData),
+                        data: JSON.stringify(dataRoute),
                         crData: JSON.stringify(dataOperadorwhitCR.crData[0]),
                       },
                     })
@@ -490,7 +471,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   cardOverlay: {
-    marginTop: -110,
+    marginTop: -170,
     left: 0,
     height: 250,
     right: 0,

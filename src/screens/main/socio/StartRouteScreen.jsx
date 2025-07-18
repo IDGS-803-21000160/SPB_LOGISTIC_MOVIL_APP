@@ -35,6 +35,8 @@ const InicioRutaForm = () => {
 
   // Carga inicial de rutas compartidas
   useEffect(() => {
+    console.log("🚀 Cargando rutas compartidas para el operador...", dataRoute);
+
     if (infoRuta.id_ruta) {
       getRutasCompartidas(infoRuta.id_ruta)
         .then((arr) => arr && setRutas(arr))
@@ -44,7 +46,7 @@ const InicioRutaForm = () => {
   }, []);
 
   // Determinar si este operador es el primero (id_ruta_operador más bajo)
-  const currentIdRutaOper = infoRuta.id_ruta_operador;
+  const currentIdRutaOper = dataRoute[0].id_ruta_operador;
   const minIdRutaOper =
     rutas.length > 1
       ? Math.min(...rutas.map((r) => r.id_ruta_operador))
@@ -113,6 +115,8 @@ const InicioRutaForm = () => {
         // Solo incluyo doc_manifiesto si soy primer operador
         ...(esPrimerOperador && { doc_manifiesto: pdfUrl }),
       };
+
+      console.log("Payload a enviar:", payload);
 
       await insertInicioRuta(payload);
       Alert.alert("Éxito", "Inicio de ruta registrado correctamente");
