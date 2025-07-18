@@ -47,6 +47,7 @@ const InicioRutaForm = () => {
 
   // Determinar si este operador es el primero (id_ruta_operador más bajo)
   const currentIdRutaOper = dataRoute[0].id_ruta_operador;
+  const numeroRuta = dataRoute[0].numero_ruta;
   const minIdRutaOper =
     rutas.length > 1
       ? Math.min(...rutas.map((r) => r.id_ruta_operador))
@@ -92,7 +93,7 @@ const InicioRutaForm = () => {
       // Subir imagen siempre
       const imgUrl = await uploadFileAsync(
         imagenOdometro,
-        `inicioRuta/${currentIdRutaOper}/odometro_${Date.now()}.jpg`,
+        `inicioRuta/${numeroRuta}/odometro_${Date.now()}.jpg`,
         "image/jpeg"
       );
 
@@ -101,7 +102,7 @@ const InicioRutaForm = () => {
         // Solo el primero sube el PDF
         pdfUrl = await uploadFileAsync(
           manifiestoPdf,
-          `inicioRuta/${currentIdRutaOper}/manifiesto_${Date.now()}.pdf`,
+          `inicioRuta/${numeroRuta}/manifiesto_${Date.now()}.pdf`,
           "application/pdf"
         );
       }

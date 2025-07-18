@@ -14,6 +14,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../../../src/context/AuthContext";
 import { getRouteOperador } from "../../../services/operadorServices/dataConsultsServices.js";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting.js";
+import { colorForStatus, getRutaStatusText } from "../../../utils/textUtils";
 
 const { width, height } = Dimensions.get("window");
 
@@ -43,6 +44,7 @@ const RoutesOperador = () => {
       const response = await getRouteOperador(idPersonaOperador, fechaHoy);
       if (response) {
         setRoutes(response[0]);
+        console.log("🚀 Rutas obtenidas:", response[0]);
         // Aquí puedes manejar la respuesta, por ejemplo, guardarla en el estado
       } else {
         console.error("No se obtuvieron rutas");
@@ -127,6 +129,19 @@ const RoutesOperador = () => {
                       >
                         {item.numero_ruta}
                       </Text>
+                      <View
+                        className={`bg-${colorForStatus(
+                          item.estatus_ruta
+                        )}-100 px-2 py-1 rounded-full`}
+                      >
+                        <Text
+                          className={`text-${colorForStatus(
+                            item.estatus_ruta
+                          )}-800 `}
+                        >
+                          {getRutaStatusText(item.estatus_ruta)}{" "}
+                        </Text>
+                      </View>
                       <Text
                         className="font-light text-black text-md"
                         style={{ color: "black" }}
@@ -162,25 +177,31 @@ const RoutesOperador = () => {
                         {item.remisiones_totales}
                       </Text>
                     </View>
-                    <View className="mt-6" style={{ alignSelf: "flex-end" }}>
-                      <TouchableOpacity
-                        onPress={() =>
-                          router.push({
-                            pathname: "/operador/homeOp/RouteDetail",
-                            params: {
-                              data: JSON.stringify(item.id_ruta_operador),
-                            },
-                          })
-                        }
-                      >
-                        <Text
-                          className="font-semibold text-lg text-center"
-                          style={{ color: "#CD0000" }}
+                    {item.estatus_ruta === 4 ? (
+                      <>
+                        <View className="mt-6"></View>
+                      </>
+                    ) : (
+                      <View className="mt-6" style={{ alignSelf: "flex-end" }}>
+                        <TouchableOpacity
+                          onPress={() =>
+                            router.push({
+                              pathname: "/operador/homeOp/RouteDetail",
+                              params: {
+                                data: JSON.stringify(item.id_ruta_operador),
+                              },
+                            })
+                          }
                         >
-                          Ver Detalles de Ruta
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                          <Text
+                            className="font-semibold text-lg text-center"
+                            style={{ color: "#CD0000" }}
+                          >
+                            Ver Detalles de Ruta
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </View>
                 </View>
               </View>

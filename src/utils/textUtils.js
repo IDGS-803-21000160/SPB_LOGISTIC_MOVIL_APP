@@ -49,3 +49,29 @@ export const extractNumRuta = (ruta) => {
   const numRuta = ruta.split("-");
   return numRuta[2];
 };
+
+export const getRutaStatusText = (status) => {
+  switch (status) {
+    case 1:
+      return "Programada";
+    case 2:
+      return "Iniciada";
+    case 4:
+      return "Finalizada";
+    default:
+      return "";
+  }
+};
+
+export const colorForStatus = (status) => {
+  switch (status) {
+    case 1:
+      return "blue"; // Amarillo para Programada
+    case 2:
+      return "orange"; // Verde para Iniciada
+    case 4:
+      return "green"; // Rojo para Finalizada
+    default:
+      return "red"; // Gris para estado desconocido
+  }
+};
