@@ -17,7 +17,6 @@ const RouterDetail = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 33,
     backgroundColor: "white",
   },
   title: {

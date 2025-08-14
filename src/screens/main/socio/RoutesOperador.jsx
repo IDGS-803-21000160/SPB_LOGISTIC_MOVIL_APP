@@ -18,7 +18,7 @@ import { colorForStatus, getRutaStatusText } from "../../../utils/textUtils";
 
 const { width, height } = Dimensions.get("window");
 
-const RoutesOperador = () => {
+const RoutesOperador = ({ routeDetailPath }) => {
   const { userData, logout } = useAuth();
   const { width, height } = Dimensions.get("window");
   const router = useRouter();
@@ -186,7 +186,7 @@ const RoutesOperador = () => {
                         <TouchableOpacity
                           onPress={() =>
                             router.push({
-                              pathname: "/operador/homeOp/RouteDetail",
+                              pathname: routeDetailPath,
                               params: {
                                 data: JSON.stringify(item.id_ruta_operador),
                               },

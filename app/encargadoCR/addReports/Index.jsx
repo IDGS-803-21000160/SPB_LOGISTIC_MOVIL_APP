@@ -4,7 +4,9 @@ import RoutesOperador from "../../../src/screens/main/socio/RoutesOperador";
 export default function HomeScreen() {
   return (
     <>
-      <RoutesOperador />
+      <RoutesOperador
+        routeDetailPath={"/encargadoCR/addReports/RouterDetail"}
+      />
     </>
   );
 }
