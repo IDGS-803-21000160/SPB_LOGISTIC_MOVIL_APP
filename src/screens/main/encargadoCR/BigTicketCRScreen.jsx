@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { Path, Svg } from "react-native-svg";
+import { postInsertBigTicketRoutes } from "../../../../src/services/encargadoCrServices/registrationRouteService"; // ← NEW
 
 // Zustand stores
 import {
@@ -176,7 +177,7 @@ const BigTicketCRScreen = () => {
 
   const nextStep = () => {
     fadeAnim.setValue(0);
-    setStep((prev) => Math.min(prev + 1, 2));
+    setStep((prev) => Math.min(prev + 1, 2)); // 0=form, 1=summary, 2=success
   };
 
   const goToOperador = () => {
@@ -189,6 +190,27 @@ const BigTicketCRScreen = () => {
 
   const goToAuxiliar2 = () => {
     router.push("/encargadoCR/addQuickReport/Auxiliar2");
+  };
+
+  const sendBigTicketRoutes = async () => {
+    if (!payloadBT.length) {
+      Alert.alert(
+        "Sin registros",
+        "Agrega al menos un registro antes de confirmar."
+      );
+      return;
+    }
+    try {
+      const response = await postInsertBigTicketRoutes(payloadBT);
+      console.log("Registro enviado al servicio:", response);
+    } catch (error) {
+      console.error("Error al enviar registro al servicio:", error);
+      Alert.alert("Error", "No se pudo registrar en el servidor.");
+    }
+    setPayloadBT([]);
+    console.log("pay load bb", payloadBT);
+
+    nextStep();
   };
 
   // ---------- Validaciones + Registrar ----------
@@ -267,8 +289,6 @@ const BigTicketCRScreen = () => {
       );
       return next;
     });
-
-    console.log("Registro agregado:", registro);
 
     setButtonNext(false);
     clearForm();
@@ -586,7 +606,7 @@ const BigTicketCRScreen = () => {
             styles.ctaButton,
             { opacity: summaryRoutes.length === 0 ? 0.6 : 1 },
           ]}
-          onPress={nextStep}
+          onPress={() => sendBigTicketRoutes()}
         >
           <Text style={styles.ctaText}>Confirmar y finalizar</Text>
         </TouchableOpacity>
@@ -616,6 +636,7 @@ const BigTicketCRScreen = () => {
           setRegistros([]);
           setSummaryRoutes([]);
           setButtonNext(true);
+          setPayloadBT([]);
         }}
       >
         <Text
