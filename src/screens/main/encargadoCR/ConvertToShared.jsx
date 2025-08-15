@@ -340,10 +340,16 @@ const ConvertToShared = () => {
   };
 
   // Función que borrará un usuario por índice
-  const handleDelete = (indexAEliminar) => {
+  const handleDelete = (idPersona) => {
     setUsuariosCompartidos((prev) =>
-      prev.filter((_, i) => i !== indexAEliminar)
+      prev.filter((u) => u.id_persona !== idPersona)
     );
+    setNewOperador((prev) => ({
+      ...prev,
+      operadoresData: (prev.operadoresData || []).filter(
+        (op) => op.id_operador !== idPersona
+      ),
+    }));
   };
 
   const addAndListOperators = () => {

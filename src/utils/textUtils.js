@@ -58,6 +58,8 @@ export const getRutaStatusText = (status) => {
       return "Iniciada";
     case 4:
       return "Finalizada";
+    case 5:
+      return "Cancelada";
     default:
       return "";
   }

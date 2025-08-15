@@ -6,8 +6,8 @@ const UsersList = ({ dataRoutes, onDelete, showButton = false }) => {
   return (
     <View className="mx-4 mt-1">
       <View className="mt-4">
-        {dataRoutes.map((item, index) => (
-          <View key={index} className="mb-4">
+        {dataRoutes.map((item) => (
+          <View key={item.id_persona} className="mb-4">
             {/* --- Tarjeta del usuario --- */}
             <View className="flex-row items-center py-3">
               <View
@@ -50,7 +50,7 @@ const UsersList = ({ dataRoutes, onDelete, showButton = false }) => {
             {/* --- Botón de BORRAR (texto en rojo) --- */}
             {showButton && (
               <View className="flex-row justify-end mt-1">
-                <TouchableOpacity onPress={() => onDelete(index)}>
+                <TouchableOpacity onPress={() => onDelete(item.id_persona)}>
                   <Text style={{ color: "red", fontWeight: "700" }}>
                     Quitar Operador
                   </Text>
