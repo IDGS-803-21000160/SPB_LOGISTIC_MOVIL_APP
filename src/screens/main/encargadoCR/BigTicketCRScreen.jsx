@@ -1,4 +1,5 @@
 import Stepper from "@/src/components/common/Stepper";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // ← NEW
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -84,9 +85,15 @@ const BigTicketCRScreen = () => {
   const [step, setStep] = useState(0);
   const [buttonNext, setButtonNext] = useState(true); // se habilita tras "Registrar"
 
-  // Registros y resumen
+  // Registros y resumen (lo que ya tenías)
   const [registros, setRegistros] = useState([]);
   const [summaryRoutes, setSummaryRoutes] = useState([]);
+
+  // NEW: arreglo con el payload Big Ticket (formato solicitado)
+  const [payloadBT, setPayloadBT] = useState([]);
+
+  // NEW: authData para id_cr e id_usuario
+  const [authData, setAuthData] = useState(null);
 
   // Animación simple para steps
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -97,6 +104,18 @@ const BigTicketCRScreen = () => {
       useNativeDriver: true,
     }).start();
   }, [step]);
+
+  // ---------- Carga authData (id_cr, id_usuario) ----------
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem("authData");
+        if (raw) setAuthData(JSON.parse(raw));
+      } catch (e) {
+        console.warn("No se pudo leer authData:", e);
+      }
+    })();
+  }, []);
 
   // ---------- Sincroniza con stores (valor, no action) ----------
   useEffect(() => {
@@ -124,6 +143,15 @@ const BigTicketCRScreen = () => {
   const toInt = (v) => {
     const n = parseInt(String(v).replace(/\D/g, ""), 10);
     return Number.isNaN(n) ? 0 : n;
+  };
+
+  // NEW: fecha YYYY-MM-DD
+  const todayString = () => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   };
 
   const clearForm = () => {
@@ -177,6 +205,7 @@ const BigTicketCRScreen = () => {
       return;
     }
 
+    // Mantener tu registro actual (para UI / resumen)
     const registro = {
       numero_ruta: numRuta,
       tipo_ruta: "Unitaria",
@@ -208,6 +237,38 @@ const BigTicketCRScreen = () => {
         zona,
       },
     ]);
+
+    // NEW: construir el objeto BigTicket solicitado y acumularlo en payloadBT
+    const operadoresArr = [
+      idOperador ? { id_operador: Number(idOperador) } : null,
+      idAuxiliar1 ? { id_operador: Number(idAuxiliar1) } : null,
+      idAuxiliar2 ? { id_operador: Number(idAuxiliar2) } : null, // auxiliar2 es opcional
+    ].filter(Boolean);
+
+    const payloadItem = {
+      numero_ruta: String(numRuta).padStart(2, "0"),
+      tipo_ruta: "BigTicket",
+      categoria_ruta: tipoRuta ?? null,
+      fecha_registro: todayString(),
+      id_cr: authData?.cr ?? null,
+      id_usuario: authData?.id_usuario ?? null,
+      zona: zona ?? null,
+      lps_totales: nLps,
+      remisiones_totales: nRem,
+      bultos: nBulto || 0,
+      operadores: operadoresArr,
+    };
+
+    setPayloadBT((prev) => {
+      const next = [...prev, payloadItem];
+      console.log(
+        "Payload BigTicket acumulado ⇒",
+        JSON.stringify(next, null, 2)
+      );
+      return next;
+    });
+
+    console.log("Registro agregado:", registro);
 
     setButtonNext(false);
     clearForm();
