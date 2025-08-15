@@ -545,129 +545,135 @@ export default function RoutePartnerRegistrationCR() {
   const normalRouteForm = () => {
     return (
       <>
-        <Text style={styles.label} className="font-semibold mb-1">
-          Operador
-        </Text>
-        <View className="flex-row items-center w-full  ">
-          <TouchableOpacity
-            className=" text-gray-900 text-md rounded-full h-14 flex-1 "
-            onPress={() => {
-              router.push("/encargadoCR/addQuickReport/Users");
-            }}
-          >
-            <TextInput
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
-              editable={false}
-              style={styles.input}
-              placeholder="Ingresa el nombre del socio"
-              value={socio}
-              onChangeText={(text) => setSocio(text)}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.buttonSearch}
-            className="p-2.5 ml-2 text-sm font-medium text-white  rounded-lg border border-red-400 "
-            accessibilityLabel="Search"
-            onPress={() => {
-              router.push("/encargadoCR/addQuickReport/Users");
-            }}
-          >
-            <Svg
-              width={45}
-              height={20}
-              viewBox="0 0 20 20"
-              fill="none"
-              className="w-4 h-4"
-            >
-              <Path
-                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                stroke="white"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-              />
-            </Svg>
-            <Text className="sr-only">Search</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.label} className="font-semibold mb-1">
-          Número de Ruta
-        </Text>
-        <TextInput
-          className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3"
-          style={styles.input}
-          placeholder="Ingresa el número de ruta"
-          value={numRuta}
-          onChangeText={(text) => setNumRuta(text)}
-          keyboardType="number-pad"
-        />
-        <View style={styles.containerSelect}>
+        <View className="mx-4">
           <Text style={styles.label} className="font-semibold mb-1">
-            Tipo de Ruta
+            Operador
           </Text>
-          <DropDownPicker
-            open={open}
-            value={tipoRuta}
-            items={items}
-            setOpen={setOpen}
-            setValue={setTipoRuta}
-            setItems={setItems}
-            placeholder="Seleccione tipo de ruta"
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            listMode="SCROLLVIEW"
+          <View className="flex-row items-center w-full  ">
+            <TouchableOpacity
+              className=" text-gray-900 text-md rounded-full h-14 flex-1 "
+              onPress={() => {
+                router.push("/encargadoCR/addQuickReport/Users");
+              }}
+            >
+              <TextInput
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-full h-14 flex-1 px-3 py-2"
+                editable={false}
+                style={styles.input}
+                placeholder="Ingresa el nombre del socio"
+                value={socio}
+                onChangeText={(text) => setSocio(text)}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.buttonSearch}
+              className="p-2.5 ml-2 text-sm font-medium text-white  rounded-lg border border-red-400 "
+              accessibilityLabel="Search"
+              onPress={() => {
+                router.push("/encargadoCR/addQuickReport/Users");
+              }}
+            >
+              <Svg
+                width={45}
+                height={20}
+                viewBox="0 0 20 20"
+                fill="none"
+                className="w-4 h-4"
+              >
+                <Path
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                  stroke="white"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                />
+              </Svg>
+              <Text className="sr-only">Search</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.label} className="font-semibold mb-1">
+            Número de Ruta
+          </Text>
+          <TextInput
+            className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3"
+            style={styles.input}
+            placeholder="Ingresa el número de ruta"
+            value={numRuta}
+            onChangeText={(text) => setNumRuta(text)}
+            keyboardType="number-pad"
           />
-        </View>
+          <View style={styles.containerSelect}>
+            <Text style={styles.label} className="font-semibold mb-1">
+              Tipo de Ruta
+            </Text>
+            <DropDownPicker
+              open={open}
+              value={tipoRuta}
+              items={items}
+              setOpen={setOpen}
+              setValue={setTipoRuta}
+              setItems={setItems}
+              placeholder="Seleccione tipo de ruta"
+              style={styles.dropdown}
+              dropDownContainerStyle={styles.dropdownContainer}
+              listMode="SCROLLVIEW"
+            />
+          </View>
 
-        <Text style={styles.label} className="font-semibold mb-1">
-          Zona
-        </Text>
-        <TextInput
-          className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3 py-2"
-          style={styles.input}
-          placeholder="Ingresa la zona"
-          value={zona}
-          onChangeText={(text) => setZona(text)}
-        />
-        <Text style={styles.label} className="font-semibold mb-1">
-          Número de LPS
-        </Text>
-        <TextInput
-          className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3"
-          style={styles.input}
-          placeholder="Ingresa el número de LPS"
-          value={numLPS}
-          onChangeText={(text) => setNumLPS(text)}
-          keyboardType="number-pad"
-        />
-        <Text style={styles.label} className="font-semibold mb-1">
-          Remisiones
-        </Text>
-        <TextInput
-          className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3"
-          style={styles.input}
-          placeholder="Ingresa las remisiones"
-          value={remisiones}
-          onChangeText={(text) => setRemisiones(text)}
-          keyboardType="number-pad"
-        />
+          <Text style={styles.label} className="font-semibold mb-1">
+            Zona
+          </Text>
+          <TextInput
+            className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3 py-2"
+            style={styles.input}
+            placeholder="Ingresa la zona"
+            value={zona}
+            onChangeText={(text) => setZona(text)}
+          />
+          <Text style={styles.label} className="font-semibold mb-1">
+            Número de LPS
+          </Text>
+          <TextInput
+            className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3"
+            style={styles.input}
+            placeholder="Ingresa el número de LPS"
+            value={numLPS}
+            onChangeText={(text) => setNumLPS(text)}
+            keyboardType="number-pad"
+          />
+          <Text style={styles.label} className="font-semibold mb-1">
+            Remisiones
+          </Text>
+          <TextInput
+            className="bg-gray-50  border border-gray-300 text-gray-900 text-md rounded-xl h-14 w-full px-3"
+            style={styles.input}
+            placeholder="Ingresa las remisiones"
+            value={remisiones}
+            onChangeText={(text) => setRemisiones(text)}
+            keyboardType="number-pad"
+          />
 
-        <View>
-          <TouchableOpacity
-            className=" p-4 rounded-xl mt-8 "
-            style={{ backgroundColor: "#D93958" }}
-            onPress={addUnaryOperator}
-          >
-            <Text className="text-white text-center font-bold ">Registrar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className=" p-4 rounded-xl mt-4 "
-            style={{ backgroundColor: buttonNext ? "#D3D3D3" : "#C64560" }}
-            onPress={() => nextStep()}
-            disabled={buttonNext}
-          >
-            <Text className="text-white text-center font-bold">Siguiente</Text>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity
+              className=" p-4 rounded-xl mt-8 "
+              style={{ backgroundColor: "#D93958" }}
+              onPress={addUnaryOperator}
+            >
+              <Text className="text-white text-center font-bold ">
+                Registrar
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className=" p-4 rounded-xl mt-4 "
+              style={{ backgroundColor: buttonNext ? "#D3D3D3" : "#C64560" }}
+              onPress={() => nextStep()}
+              disabled={buttonNext}
+            >
+              <Text className="text-white text-center font-bold">
+                Siguiente
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </>
     );
@@ -1145,12 +1151,13 @@ export default function RoutePartnerRegistrationCR() {
 
   return (
     <>
+      {/* 
       <View
         style={{ backgroundColor: "#C64560" }}
         className="flex flex-row content-center items-center justify-center text-color-white"
       >
         <Text style={styles.headerText}>Registró Operador - Ruta</Text>
-      </View>
+      </View>*/}
       <View style={styles.headerContainer}>
         {toastVisible ? (
           <ToastSuccess
