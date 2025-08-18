@@ -70,10 +70,10 @@ export const colorForStatus = (status) => {
     case 1:
       return "blue"; // Amarillo para Programada
     case 2:
-      return "orange"; // Verde para Iniciada
+      return "green"; // Verde para Iniciada
     case 4:
-      return "green"; // Rojo para Finalizada
+      return "red"; // Rojo para Finalizada
     default:
-      return "red"; // Gris para estado desconocido
+      return "red"; // Rojo para estado desconocido
   }
 };

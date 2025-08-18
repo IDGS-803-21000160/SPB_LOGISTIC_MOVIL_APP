@@ -37,6 +37,7 @@ const RouteDetails = ({ idRute }) => {
   const [dataRoutes, setDataRoutes] = useState([]);
   const [modalEdit, setModalEdit] = useState(false);
   const [remisiones, setRemisiones] = useState("");
+  const [bultos, setBultos] = useState("");
   const [lps, setLps] = useState("");
   const [zona, setZona] = useState("");
   const [idRutaOperador, setIdRutaOperador] = useState(0);
@@ -89,6 +90,7 @@ const RouteDetails = ({ idRute }) => {
       setRemisiones(dataSummary[0]?.remisiones_totales?.toString() || "");
       setZona(dataSummary[0]?.zona || "");
       setIdRutaOperador(dataSummary[0]?.id_ruta_operador || 0);
+      setBultos(dataSummary[0]?.bultos);
     }
   }, [dataSummary]);
 
@@ -451,6 +453,21 @@ const RouteDetails = ({ idRute }) => {
                         {dataSummary[0]?.remisiones_totales}
                       </Text>
                     </View>
+                    {dataSummary[0]?.tipo_ruta === "BigTicket" ? (
+                      <>
+                        <View className=" mx-4 mt-2 flex flex-row justify-between">
+                          <Text className="font-light text-black text-lg mx-2 mr-2 mt-1">
+                            Bultos
+                          </Text>
+                          <Text className="font-semibold text-black text-xl mx-2 mr-2 mt-1">
+                            {dataSummary[0]?.bultos}
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <></>
+                    )}
+
                     {dataRoutes[0]?.length >= 2 ? (
                       <></>
                     ) : (

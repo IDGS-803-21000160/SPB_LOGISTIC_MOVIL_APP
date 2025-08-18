@@ -1,4 +1,5 @@
 import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -6,6 +7,8 @@ import {
   Alert,
   Dimensions,
   Image,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { WebView } from "react-native-webview";
 import Spinner from "../../../components/common/Spinner";
 import { insertInicioRuta } from "../../../services/operadorServices/iniciorutaService";
 import { getRutasCompartidas } from "../../../services/userServices/operadoresServices";
@@ -28,6 +32,10 @@ const InicioRutaForm = () => {
   const [rutas, setRutas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [numRuta, setNumRuta] = useState("");
+
+  // === NUEVO: estado para modal PDF ===
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfViewerSource, setPdfViewerSource] = useState(null); // { uri } o { html }
 
   const { data } = useLocalSearchParams();
   const dataRoute = JSON.parse(data);
@@ -76,21 +84,105 @@ const InicioRutaForm = () => {
     }
   };
 
-  // Envío del formulario
+  // === NUEVO: ver PDF en modal (funciona iOS local/remoto; Android remoto; Android local usa pdf.js incrustado) ===
+  const handleVerPdf = async () => {
+    if (!manifiestoPdf) return;
+
+    const isRemote = manifiestoPdf.startsWith("http");
+
+    if (Platform.OS === "android") {
+      if (isRemote) {
+        // Android: usar Google Viewer dentro del modal
+        setPdfViewerSource({
+          uri:
+            "https://drive.google.com/viewerng/viewer?embedded=true&url=" +
+            encodeURIComponent(manifiestoPdf),
+        });
+        setShowPdfPreview(true);
+        return;
+      } else {
+        // Android local: render simple con pdf.js (primera página) incrustado en HTML
+        try {
+          const b64 = await FileSystem.readAsStringAsync(manifiestoPdf, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  html, body { margin:0; background:#000; color:#fff; height:100%; }
+  #wrap { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#000; }
+  canvas { max-width:100%; height:auto; }
+  .msg { position:absolute; top:8px; left:0; right:0; text-align:center; font:14px sans-serif; color:#ccc; }
+</style>
+</head>
+<body>
+<div class="msg">Vista previa (página 1)</div>
+<div id="wrap"><canvas id="viewer"></canvas></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+<script>
+(async function(){
+  try {
+    const b64='${b64}';
+    const raw = atob(b64);
+    const len = raw.length;
+    const bytes = new Uint8Array(len);
+    for (let i=0;i<len;i++) bytes[i]=raw.charCodeAt(i);
+    const pdf = await pdfjsLib.getDocument({data:bytes}).promise;
+    const page = await pdf.getPage(1);
+    const canvas = document.getElementById('viewer');
+    const ratio = (window.devicePixelRatio || 1);
+    const viewport = page.getViewport({ scale: 1.2 });
+    canvas.width = viewport.width * ratio;
+    canvas.height = viewport.height * ratio;
+    canvas.style.width = viewport.width + 'px';
+    canvas.style.height = viewport.height + 'px';
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport: viewport.transform
+        ? new pdfjsLib.PageViewport(viewport.viewBox, {dontFlip: false}).clone({
+            scale: 1.2 * ratio
+          })
+        : { ...viewport, scale: 1.2 * ratio }
+    }).promise;
+  } catch(e){
+    document.body.innerHTML = '<div style="padding:16px;color:#fff;font:16px sans-serif">No se pudo renderizar el PDF.</div>';
+  }
+})();
+</script>
+</body>
+</html>`;
+          setPdfViewerSource({ html });
+          setShowPdfPreview(true);
+        } catch (e) {
+          Alert.alert(
+            "Vista previa",
+            "No se pudo abrir el PDF local en Android."
+          );
+        }
+        return;
+      }
+    }
+
+    // iOS: WebView renderiza PDF local y remoto nativamente
+    setPdfViewerSource({ uri: manifiestoPdf });
+    setShowPdfPreview(true);
+  };
+
+  // Envío del formulario (SIN CAMBIOS)
   const handleSubmit = async () => {
-    // Validaciones comunes
     if (!kilometrajeInicial)
       return Alert.alert("Atención", "Kilometraje obligatorio");
     if (!imagenOdometro)
       return Alert.alert("Atención", "Selecciona foto odómetro");
 
-    // Si soy primer operador, también requiero PDF
     if (esPrimerOperador && !manifiestoPdf)
       return Alert.alert("Atención", "Selecciona PDF de manifiesto");
 
     setLoading(true);
     try {
-      // Subir imagen siempre
       const imgUrl = await uploadFileAsync(
         imagenOdometro,
         `inicioRuta/${numeroRuta}/odometro_${Date.now()}.jpg`,
@@ -99,7 +191,6 @@ const InicioRutaForm = () => {
 
       let pdfUrl = null;
       if (esPrimerOperador) {
-        // Solo el primero sube el PDF
         pdfUrl = await uploadFileAsync(
           manifiestoPdf,
           `inicioRuta/${numeroRuta}/manifiesto_${Date.now()}.pdf`,
@@ -107,13 +198,11 @@ const InicioRutaForm = () => {
         );
       }
 
-      // Construir payload
       const payload = {
         id_ruta_operador: currentIdRutaOper,
         kilometraje_inicial: kilometrajeInicial,
         imagen_kilometraje: imgUrl,
         fecha_inicio: getFormattedDateMexico(),
-        // Solo incluyo doc_manifiesto si soy primer operador
         ...(esPrimerOperador && { doc_manifiesto: pdfUrl }),
       };
 
@@ -182,9 +271,19 @@ const InicioRutaForm = () => {
               <Text style={styles.uploadText}>Seleccionar PDF</Text>
             </TouchableOpacity>
             {manifiestoPdf && (
-              <Text style={{ marginTop: 8, color: "#555" }}>
-                {manifiestoPdf.split("/").pop()}
-              </Text>
+              <View style={{ marginTop: 8 }}>
+                <Text style={{ color: "#555" }}>
+                  {manifiestoPdf.split("/").pop()}
+                </Text>
+
+                {/* === NUEVO: botón para abrir modal === */}
+                <TouchableOpacity
+                  style={[styles.uploadButton, { marginTop: 8 }]}
+                  onPress={handleVerPdf}
+                >
+                  <Text style={styles.uploadText}>Ver PDF</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         ) : rutas.length > 1 ? (
@@ -198,6 +297,48 @@ const InicioRutaForm = () => {
           <Text style={styles.submitText}>Enviar</Text>
         </TouchableOpacity>
       </View>
+
+      {/* === NUEVO: MODAL PDF === */}
+      <Modal
+        visible={showPdfPreview}
+        animationType="slide"
+        onRequestClose={() => setShowPdfPreview(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "#000" }}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowPdfPreview(false)}>
+              <Text style={styles.modalHeaderText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {pdfViewerSource ? (
+            <WebView
+              originWhitelist={["*"]}
+              style={{ flex: 1 }}
+              source={pdfViewerSource}
+              allowFileAccess
+              allowFileAccessFromFileURLs
+              javaScriptEnabled
+              domStorageEnabled
+              startInLoadingState
+              setSupportMultipleWindows={false}
+              renderError={() => (
+                <View style={styles.center}>
+                  <Text
+                    style={{ color: "#fff", padding: 16, textAlign: "center" }}
+                  >
+                    No se pudo cargar el PDF.
+                  </Text>
+                </View>
+              )}
+            />
+          ) : (
+            <View style={styles.center}>
+              <Text style={{ color: "#fff" }}>Sin PDF</Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -267,6 +408,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  modalHeader: {
+    paddingTop: 16,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#111",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  modalHeaderText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+    marginTop: 67,
+  },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
 });
 
 export default InicioRutaForm;

@@ -30,7 +30,7 @@ const RegistrationOptionCRScreen = ({ navigation }) => {
               Registro Ruta Unitaria y Compartida
             </Text>
             <Text style={styles.buttonSubtext}>
-              Ingresa los datos de la ruta manualmente
+              Registro de rutas unitaria y compartida
             </Text>
           </View>
           <View
@@ -41,7 +41,7 @@ const RegistrationOptionCRScreen = ({ navigation }) => {
           >
             <Text style={styles.buttonText}>Registro Ruta Big Ticket</Text>
             <Text style={styles.buttonSubtext}>
-              Escanea un código QR para registrar la ruta
+              Registro de rutas Big Ticket
             </Text>
           </View>
         </View>

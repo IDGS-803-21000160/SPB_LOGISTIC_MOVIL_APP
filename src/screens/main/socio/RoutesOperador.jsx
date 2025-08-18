@@ -177,7 +177,7 @@ const RoutesOperador = ({ routeDetailPath }) => {
                         {item.remisiones_totales}
                       </Text>
                     </View>
-                    {item.estatus_ruta === 4 || 5 ? (
+                    {item.estatus_ruta === 4 || item.estatus_ruta === 5 ? (
                       <>
                         <View className="mt-6"></View>
                       </>
