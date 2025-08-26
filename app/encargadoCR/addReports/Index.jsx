@@ -1,31 +1,23 @@
-import { StyleSheet, View } from "react-native";
-import DailySummaryLog from "../../../src/screens/main/socio/DailySummaryLog";
+import { StyleSheet } from "react-native";
+import RoutesOperador from "../../../src/screens/main/socio/RoutesOperador";
 
-const AddReports = () => {
+export default function HomeScreen() {
   return (
     <>
-      <View style={styles.container}>
-        <DailySummaryLog
-          startRoutePath={"/encargadoCR/addReports/StartrouteCR"}
-          endRoutePath={"/encargadoCR/addReports/EndRouteCR"}
-        ></DailySummaryLog>
-      </View>
+      <RoutesOperador
+        routeDetailPath={"/encargadoCR/addReports/RouterDetail"}
+      />
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 33,
     backgroundColor: "white",
   },
-  title: {
+  text: {
+    color: "#fff",
     fontSize: 20,
-    marginBottom: 20,
-    color: "#000",
-    fontWeight: "bold",
   },
 });
-
-export default AddReports;

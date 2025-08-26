@@ -1,5 +1,5 @@
 // app/(operador)/_layout.js
-import TabBar from "@/src/components/common/TabBar";
+import TabBar from "../../src/components/common/TabBar";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";

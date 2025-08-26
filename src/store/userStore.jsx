@@ -25,3 +25,24 @@ export const useModalStore = create((set) => ({
   isModalOpen: false,
   setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
 }));
+
+// Operador
+export const useBigTicketRouteStoreOperador = create((set) => ({
+  selectedUser: null, // ← valor
+  setSelectedUser: (user) => set({ selectedUser: user }), // ← función que actualiza selectedUser
+  reset: () => set({ selectedUser: null }),
+}));
+
+// Auxiliar 1
+export const useBigTicketRouteStoreAuxiliar1 = create((set) => ({
+  selectedUser: null,
+  setSelectedUser: (user) => set({ selectedUser: user }),
+  reset: () => set({ selectedUser: null }),
+}));
+
+// Auxiliar 2
+export const useBigTicketRouteStoreAuxiliar2 = create((set) => ({
+  selectedUser: null,
+  setSelectedUser: (user) => set({ selectedUser: user }),
+  reset: () => set({ selectedUser: null }),
+}));

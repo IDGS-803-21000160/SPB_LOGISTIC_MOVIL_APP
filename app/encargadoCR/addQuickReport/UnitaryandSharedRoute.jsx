@@ -1,10 +1,10 @@
 import { StyleSheet, View } from "react-native";
-import RegistrationOptionCRScreen from "../../../src/screens/main/encargadoCR/ReguistrationOptionCRScreen";
+import RoutePartnerRegistrationCR from "../../../src/screens/main/encargadoCR/RoutePartnerRegistrationCRScreen";
 
-const AddQuickReport = () => {
+const UnitaryAndSharedRoute = () => {
   return (
     <View style={styles.container}>
-      <RegistrationOptionCRScreen />
+      <RoutePartnerRegistrationCR />
     </View>
   );
 };
@@ -20,4 +20,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddQuickReport;
+export default UnitaryAndSharedRoute;

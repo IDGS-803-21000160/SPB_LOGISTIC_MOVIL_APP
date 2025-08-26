@@ -29,6 +29,16 @@ export default function LayoutHomeOperador() {
           headerStyle: { backgroundColor: "#C64560" },
         }}
       />
+      <Stack.Screen
+        name="RouteDetail"
+        options={{
+          headerShown: true,
+          title: "Detalle de ruta",
+          headerTintColor: "white",
+          headerBackTitle: "Inicio",
+          headerStyle: { backgroundColor: "#C64560" },
+        }}
+      />
     </Stack>
   );
 }

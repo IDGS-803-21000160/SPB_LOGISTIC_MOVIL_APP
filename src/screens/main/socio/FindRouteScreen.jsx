@@ -46,15 +46,15 @@ const CierreRutaForm = () => {
   const [zona, setZona] = useState("");
 
   useEffect(() => {
-    console.log("🥎Data de la ruta:", dataRoute[0][0]);
+    console.log("🥎Data de la ruta:", dataRoute[0]);
     console.log("🐽Data CR:", datosCR);
 
-    setNumRuta(dataRoute[0][0].numero_ruta);
-    setLpsAsignados(dataRoute[0][0].lps_asignados);
-    setRemisionesAsignadas(dataRoute[0][0].remisiones_asignadas);
-    setRuta(dataRoute[0][0].tipo_ruta);
-    setZona(dataRoute[0][0].zona);
-    setIdRutaOperador(dataRoute[0][0].id_ruta_operador);
+    setNumRuta(dataRoute[0].numero_ruta);
+    setLpsAsignados(dataRoute[0].lps_asignados);
+    setRemisionesAsignadas(dataRoute[0].remisiones_asignadas);
+    setRuta(dataRoute[0].tipo_ruta);
+    setZona(dataRoute[0].zona);
+    setIdRutaOperador(dataRoute[0].id_ruta_operador);
   }, []);
 
   const seleccionarImagen = async (setter) => {

@@ -26,6 +26,7 @@ import Spinner from "../../../components/common/Spinner";
 import UsersList from "../../../components/common/UsersList";
 import getCityName from "../../../utils/crName";
 import { getFormattedDateMexico } from "../../../utils/dateFormatting";
+import { getRutaStatusText } from "../../../utils/textUtils";
 const { width, height } = Dimensions.get("window");
 
 const RouteDetails = ({ idRute }) => {
@@ -36,6 +37,7 @@ const RouteDetails = ({ idRute }) => {
   const [dataRoutes, setDataRoutes] = useState([]);
   const [modalEdit, setModalEdit] = useState(false);
   const [remisiones, setRemisiones] = useState("");
+  const [bultos, setBultos] = useState("");
   const [lps, setLps] = useState("");
   const [zona, setZona] = useState("");
   const [idRutaOperador, setIdRutaOperador] = useState(0);
@@ -88,6 +90,7 @@ const RouteDetails = ({ idRute }) => {
       setRemisiones(dataSummary[0]?.remisiones_totales?.toString() || "");
       setZona(dataSummary[0]?.zona || "");
       setIdRutaOperador(dataSummary[0]?.id_ruta_operador || 0);
+      setBultos(dataSummary[0]?.bultos);
     }
   }, [dataSummary]);
 
@@ -404,11 +407,19 @@ const RouteDetails = ({ idRute }) => {
 
                 {/*Datos de la Ruta*/}
                 <View className="" style={styles.card}>
-                  <View className="ml-4 mt-5">
-                    <Text className="font-bold text-black text-2xl mx-2 mr-2 mt-1">
-                      Datos de la Ruta
-                    </Text>
+                  <View className="ml-4 mt-5 mr-4">
+                    <View className="flex flex-row justify-between items-center">
+                      <Text className="font-bold text-black text-2xl">
+                        Datos de la Ruta
+                      </Text>
+                      <View className="bg-indigo-100 px-2.5 py-0.5 rounded-full">
+                        <Text className="text-indigo-800  ">
+                          {getRutaStatusText(dataSummary[0]?.id_estatus)}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
+
                   <View>
                     <View className=" mx-4 mt-5 flex flex-row justify-between">
                       <Text className="font-light text-black text-lg mx-2 mr-2 mt-1">
@@ -442,6 +453,21 @@ const RouteDetails = ({ idRute }) => {
                         {dataSummary[0]?.remisiones_totales}
                       </Text>
                     </View>
+                    {dataSummary[0]?.tipo_ruta === "BigTicket" ? (
+                      <>
+                        <View className=" mx-4 mt-2 flex flex-row justify-between">
+                          <Text className="font-light text-black text-lg mx-2 mr-2 mt-1">
+                            Bultos
+                          </Text>
+                          <Text className="font-semibold text-black text-xl mx-2 mr-2 mt-1">
+                            {dataSummary[0]?.bultos}
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <></>
+                    )}
+
                     {dataRoutes[0]?.length >= 2 ? (
                       <></>
                     ) : (
